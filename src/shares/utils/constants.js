@@ -4,7 +4,7 @@
 const SPECIALIZATIONS = {
   PSICOLOGIA_EDUCATIVA: "Psicología Educativa",
   LOGOPEDIA: "Logopedia",
-  ATENCION_TEMPRANA: "Atención temprana",
+  ATENCION_TEMPRANA: "Atención Temprana",
   NEUROPSICOLOGIA: "Neuropsicología",
   ORIENTACION_EDUCATIVA: "Orientación Educativa",
 };
@@ -31,6 +31,7 @@ const COURSES = {
   ESO_4: "4 ESO",
   BACHILLER_1: "1 Bachillerato",
   BACHILLER_2: "2 Bachillerato",
+  FP: "FP",
 };
 
 const DIAGNOSIS = {
@@ -39,12 +40,12 @@ const DIAGNOSIS = {
   TDAH: "TDAH",
   DISGRAFIA: "Disgrafía",
   TEA: "TEA",
-  DISCAPACIDAD_INTELECTUAL: "Discapacidad Intelectual",
+  DISCAPACIDAD_INTELECTUAL: "Discapacidad intelectual",
   RETRASO_DEL_LENGUAJE: "Retraso del Lenguaje",
   ALTAS_CAPACIDADES: "Altas Capacidades",
   RETRASO_MADURATIVO: "Retraso Madurativo",
   ANSIEDAD_ESCOLAR: "Ansiedad Escolar",
-  NINGUNO: "Ningúno",
+  NINGUNO: "Ninguno",
 };
 
 const TUTOR_RELATIONSHIP = {
@@ -60,6 +61,12 @@ const SESSION_STATUS = {
   COMPLETADO: "Completado",
 };
 
+//CONSTANTES DE ARCHIVOS
+const SIZE_FILES = {
+  MAX_SIZE_5MB: 5 * 1024 * 1024, //5MB - PARA AVATAR
+  MAX_SIZE_20MB: 20 * 1024 * 1024, //20MB - PARA DOCUMENTOS
+};
+
 export {
   SPECIALIZATIONS,
   USER_ROLES,
@@ -67,4 +74,5 @@ export {
   DIAGNOSIS,
   TUTOR_RELATIONSHIP,
   SESSION_STATUS,
+  SIZE_FILES,
 };
