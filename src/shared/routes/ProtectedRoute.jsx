@@ -1,6 +1,5 @@
 // Archivo para crear rutas protegidas
 // Importaciones
-import { useAuth } from "../../modules/auth/hooks/useAuth";
 import { Navigate, Outlet } from "react-router-dom";
 
 //COMPONENTE PARA CREAR RUTAS PROTEGIDAS

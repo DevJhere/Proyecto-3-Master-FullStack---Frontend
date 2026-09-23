@@ -1,10 +1,10 @@
 import { BrowserRouter, Routes, Navigate, Route } from "react-router-dom";
 
 // Importaciones de Layout
-import { MainLayout } from "../../modules/layout";
+import { MainLayout } from "../layout/MainLayout";
 
 // Importaciones de Rutas Protegidas
-import { ProtectedRoute } from "../../modules/auth";
+import { ProtectedRoute } from "../routes/ProtectedRoute";
 
 // Importaciones de Rutas Públicas
 import { Login } from "../pages/public/Login";
@@ -12,11 +12,11 @@ import { Register } from "../pages/public/Register";
 
 // Importaciones de Rutas Privadas
 import { Dashboard } from "../pages/private/Dashboard";
-import { StudentPages } from "../pages/private/Students";
-import { SessionsPage } from "../pages/private/Sessions";
+import { Students } from "../pages/private/Students";
+import { Sessions } from "../pages/private/Sessions";
   
 
-import { Error404 } from "./Error404";
+import { Error404 } from "../pages/public/Error404";
 
 export const AppRouter = () => {
     return (
@@ -42,6 +42,7 @@ export const AppRouter = () => {
                         {/* <Route path="/students/:id" element={<StudentDetailPage />} /> */}
                         <Route path="/sessions" element={<Sessions />} />
                         {/* <Route path="/" element={<ProfilePage />} /> */}
+                        <Route path="/users" element={['admin','pedagogo']}/>
 
                     </Route>
                 </Route>
