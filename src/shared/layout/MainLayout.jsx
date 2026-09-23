@@ -1,6 +1,6 @@
 /*  */
 import { Outlet, NavLink } from "react-router-dom";
-import { useAuth } from "../../modules/auth/hooks/useAuth";
+import { useAuth } from "../hooks/useAuth";
 import { useState } from "react";
 
 export const MainLayout = () => {

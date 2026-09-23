@@ -39,10 +39,14 @@ export const AppRouter = () => {
                     <Route element={<MainLayout />}>
                         <Route path="/dashboard" element={<Dashboard />}/>
                         <Route path="/students" element={<Students />}/>
+                        
                         {/* <Route path="/students/:id" element={<StudentDetailPage />} /> */}
                         <Route path="/sessions" element={<Sessions />} />
+
                         {/* <Route path="/" element={<ProfilePage />} /> */}
-                        <Route path="/users" element={['admin','pedagogo']}/>
+
+                        {/* RUTA PROTEGIDA PARA USUARIOS AUTENTICADOS - PERMITE ACCESO A ADMINISTRADORES Y PEDAGOGOS */}
+                        <Route path="/users" element={<ProtectedRoute allowedRoles={['admin','pedagogo']}/>}/>
 
                     </Route>
                 </Route>

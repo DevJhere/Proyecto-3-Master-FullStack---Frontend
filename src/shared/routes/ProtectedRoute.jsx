@@ -1,6 +1,7 @@
 // Archivo para crear rutas protegidas
 // Importaciones
 import { Navigate, Outlet } from "react-router-dom";
+import { useAuth } from "../hooks/useAuth";
 
 //COMPONENTE PARA CREAR RUTAS PROTEGIDAS
 export const ProtectedRoute = ({ children, allowedRoles = [] }) => {
