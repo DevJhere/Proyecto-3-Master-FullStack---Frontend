@@ -54,7 +54,9 @@ export const AuthProvider = ({children}) =>{
            return {success: true, message: "Inicio de sesión exitoso"};
             
         }catch(err){
-            return {success: false, message: "Error de autenticación."};
+            const errorMessage = err.response?.data?.message || "Email o contraseña incorrectos.";
+
+            return {success: false, message: errorMessage};
         }
     };
 

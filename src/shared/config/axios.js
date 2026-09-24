@@ -30,16 +30,19 @@ apiClient.interceptors.response.use(
   //En caso de error, se ejecuta esta función
   (error) => {
     const status = error.response?.status;
+    const isLoginRequest = error.config?.url?.includes("/auth/login");
 
-    if (status === 401) {
+    // Si es 401 y NO es el intento de login, limpiamos sesión y redirigimos
+    if (status === 401 && !isLoginRequest) {
       localStorage.removeItem("token");
       localStorage.removeItem("user");
-      //Redirigimos al usuario a la pantalla de inicio
+      // Redirigimos al usuario a la pantalla de inicio
       window.location.href = "/";
     }
 
     return Promise.reject(error);
   },
+
 );
 
 //Exportamos

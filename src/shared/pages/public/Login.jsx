@@ -67,7 +67,7 @@ export const Login = () => {
       }
       
     } catch (err) {
-      setError("Error de autenticación. Intente nuevamente.");
+      setError("Error de autenticación");
     }finally{
       setIsSubmitting(false)
     }
