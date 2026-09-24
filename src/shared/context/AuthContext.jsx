@@ -41,7 +41,7 @@ export const AuthProvider = ({children}) =>{
             const response = await apiClient.post("/auth/login", data);
 
             //Procesamos la respuesta
-            const result = await response.data;
+            const result = response.data;
 
             //Almacenamos toke y user en localstorage
             localStorage.setItem("token",result.token);
