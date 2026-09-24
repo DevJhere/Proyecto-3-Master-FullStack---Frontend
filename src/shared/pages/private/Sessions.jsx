@@ -1,9 +1,7 @@
 import React from 'react'
 
-const Sessions = () => {
+export const Sessions = () => {
   return (
     <div>Sessions</div>
   )
-}
-
-export default Sessions
+}
