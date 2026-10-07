@@ -85,7 +85,7 @@ export const Register = () => {
       // Esperamos 1.5 segundos para que el usuario lea el mensaje y redirigimos
       setTimeout(() => {
         navigate("/login");
-      }, 2000);
+      }, 3000);
 
     }catch(err){
 

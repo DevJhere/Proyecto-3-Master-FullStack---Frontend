@@ -25,7 +25,7 @@ export const MainLayout = () => {
     return (
         <div className="flex h-screen bg-[#FAF8F5] overflow-hidden font-sans">
             {/* SIDEBAR - LATERAL */}
-            <aside className="w-64 bg-white border-r border-[#EBE8E0] flex flex-col justify-between p-6 select-none">
+            <aside className="w-64 bg-white border-r border-[#c8c6c1] flex flex-col justify-between p-6 select-none">
                 <div>
                     {/* LOGO E IDENTIDAD DE MARCA */}
                     <div className="flex items-center gap-3 mb-8 px-2">
@@ -66,7 +66,7 @@ export const MainLayout = () => {
                 </div>
 
                 {/* USUARIO Y BOTÓN DE LOGOUT (FOOTER SIDEBAR) */}
-                <div className="pt-6 border-t border-[#F0EDE6] space-y-4">
+                <div className="pt-6 border-t border-[#c8c6c1] space-y-4">
                     <div className="flex items-center gap-3 px-2">
                         {/* Avatar - Tono pastel */}
                         <div className="w-10 h-10 rounded-full bg-[#E8E3F5] text-[#6B5B95] flex items-center justify-center font-semibold text-sm shrink-0">
