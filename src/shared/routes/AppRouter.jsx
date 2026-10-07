@@ -14,6 +14,7 @@ import { Register } from "../pages/public/Register";
 import { Dashboard } from "../pages/private/Dashboard";
 import { Students } from "../pages/private/Students";
 import { Sessions } from "../pages/private/Sessions";
+import {Profile} from "../pages/private/Profile";
   
 
 import { Error404 } from "../pages/public/Error404";
@@ -43,7 +44,7 @@ export const AppRouter = () => {
                         {/* <Route path="/students/:id" element={<StudentDetailPage />} /> */}
                         <Route path="/sessions" element={<Sessions />} />
 
-                        {/* <Route path="/" element={<ProfilePage />} /> */}
+                        <Route path="/profile" element={<Profile />} />
 
                         {/* RUTA PROTEGIDA PARA USUARIOS AUTENTICADOS - PERMITE ACCESO A ADMINISTRADORES Y PEDAGOGOS */}
                         <Route path="/users" element={<ProtectedRoute allowedRoles={['admin','pedagogo']}/>}/>

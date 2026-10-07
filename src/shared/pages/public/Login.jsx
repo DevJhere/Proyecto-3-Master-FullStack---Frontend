@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate, Link, NavLink } from "react-router-dom";
+import { useNavigate, NavLink } from "react-router-dom";
 import { useAuth } from "../../hooks/useAuth";
 import logo from '../../../assets/images/Raices y Alas Logo.png';
 import { FiEyeOff } from "react-icons/fi";
@@ -162,7 +162,7 @@ export const Login = () => {
               disabled={isSubmitting}
               className="w-full bg-[#529471] hover:bg-[#437a5d] text-white font-medium py-3.5 rounded-2xl shadow-sm transition-all duration-200 text-sm mt-4 cursor-pointer"
             >
-              {isSubmitting ? "Entrando..." : "Entrar a Raíces y Alas"}
+              {isSubmitting ? "Entrando..." : "Entrar"}
             </button>
           </form>
         

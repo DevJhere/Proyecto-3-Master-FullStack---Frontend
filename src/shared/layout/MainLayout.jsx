@@ -70,16 +70,16 @@ export const MainLayout = () => {
                     <div className="flex items-center gap-3 px-2">
                         {/* Avatar - Tono pastel */}
                         <div className="w-10 h-10 rounded-full bg-[#E8E3F5] text-[#6B5B95] flex items-center justify-center font-semibold text-sm shrink-0">
-                            {user?.nombre ? user.nombre.slice(0, 2).toUpperCase() : "TP"}
+                            {user?.name ? user.name.slice(0, 2).toUpperCase() : "TP"}
                         </div>
 
                         <div className="overflow-hidden">
                             <p className="text-sm font-bold text-slate-800 truncate leading-snug">
-                                {user?.nombre || "Usuario"}
+                                {user?.name || "Usuario"}
                             </p>
 
                             <p className="text-xs text-slate-400 truncate">
-                                {user?.specialization || (user?.rol === 'admin' ? 'Administrador' : 'Pedagogo')}
+                                {user?.specialization || (user?.rol === 'admin' ? 'admin' : 'pedagogo')}
                             </p>
                         </div>
                     </div>
@@ -102,4 +102,4 @@ export const MainLayout = () => {
             </main>
         </div>
     );
-};
+};
