@@ -2,7 +2,7 @@ import { NavLink } from "react-router-dom"
 import { useAuth } from "../../hooks/useAuth"
 import { useState } from "react";
 import { useEffect } from "react";
-import { NavLink, Link } from "react-router-dom";
+import { Link } from "react-router-dom";
 import apiClient from "../../config/axios";
 
 
@@ -226,8 +226,9 @@ export const Dashboard = () => {
 
                 return(
                   
-                  <div
+                  <Link
                    key={session._id || session.id}
+                   to={studentData?._id ? `/students/${studentData._id}` : "/students"}
                    className="bg-white rounded-3xl border border-[#EBE7DF] p-5 shadow-sm hover:shadow-md transition-shadow flex items-center justify-between"
                   >
                     {/* Columna Izquierda: Hora + Avatar + Datos alumno */}
@@ -258,7 +259,7 @@ export const Dashboard = () => {
                       </span>
 
                     </div>
-                  </div>
+                  </Link>
 
                 );
 
@@ -267,6 +268,8 @@ export const Dashboard = () => {
             </div>
           )} 
         </div>
+
+
       </div >
     </div>
   )
