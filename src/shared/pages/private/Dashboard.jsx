@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useEffect } from "react";
 import { Link } from "react-router-dom";
 import apiClient from "../../config/axios";
+import { getAvatarUrl } from "../../utils/HelperAvatar";
 
 
 export const Dashboard = () => {
@@ -221,7 +222,6 @@ export const Dashboard = () => {
                 //Recogemos los datos y los asignamos a variables que provienen de la base de datos
                 const name = studentData?.name || "Alumno sin nombre";
                 const diagnosis = studentData?.diagnosis || studentData?.diagnostico || "No diagnosticado";
-                const avatar = studentData?.avatar || "https://res.cloudinary.com/kvayxt5w/image/upload/v1788861354/profile-default.jpg";
                 const durationSession = session.duration ? `${session.duration} min` : "60 min";
 
                 return(
@@ -239,7 +239,11 @@ export const Dashboard = () => {
                       </div>
 
                       <div className="w-10 h-10 rounded-full bg-slate-100 overflow-hidden shrink-0 border border-[#EBE7DF]">
-                        <img src={avatar} alt={name} className="w-full h-full object-cover" />
+                        <img
+                          src={getAvatarUrl(studentData.avatar)}
+                          alt={studentData.name}
+                          className="w-full h-full object-cover"
+                        />
                       </div>
 
                       <div>
@@ -289,16 +293,16 @@ export const Dashboard = () => {
 
                 <Link
                 key={student._id}
-                to={`students/${student._id}`}
+                to={`/students/${student._id}`}
                 className="bg-white rounded-2xl p-4 border border-[#EBE7DF] hover:border-[#529471] shadow-sm hover:shadow-md transition-all flex items-center gap-3 group cursor-pointer"
                 >
                   {/* Avatar alumno */}
                   <div className="w-10 h-10 rounded-full bg-slate-100 overflow-hidden shrink-0 border border-[#EBE7DF] group-hover:scale-105 transition-transform">
 
                     <img
-                    src={student.avatar || "https://res.cloudinary.com/kvayxt5w/image/upload/v1788861354/profile-default.jpg"}
-                    alt={student.name}
-                    className="w-full h-full object-cover"
+                      src={getAvatarUrl(student.avatar)}
+                      alt={student.name}
+                      className="w-full h-full object-cover"
                     />
                   </div>
 
