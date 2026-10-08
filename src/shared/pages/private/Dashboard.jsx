@@ -269,7 +269,60 @@ export const Dashboard = () => {
           )} 
         </div>
 
+        {/* Contenedor: Acceso rapido de Alumnos */}
+        <div className="mb-10">
+          <div className="flex items-baseline justify-between mb-4">
+            <h2 className="text-lg font-semibold tracking-wider text-slate-800">
+              Acceso Rápido
+            </h2>
+          </div>
 
+          {/* Tarjetas de acceso rápido */}
+          { students.length === 0 ? (
+            <div className="text-center py-8 bg-white rounded-3xl border border-dashed border-[#EBE7DF]">
+              <p className="text-slate-400 text-sm">No tienes alumnos asigandos todavía.</p>
+            </div>
+          ): (
+            // Grid de 3 columons que muestras hasta 6 pacientes/alumnos principales
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+              {students.slice(0,6).map( (student) =>(
+
+                <Link
+                key={student._id}
+                to={`students/${student._id}`}
+                className="bg-white rounded-2xl p-4 border border-[#EBE7DF] hover:border-[#529471] shadow-sm hover:shadow-md transition-all flex items-center gap-3 group cursor-pointer"
+                >
+                  {/* Avatar alumno */}
+                  <div className="w-10 h-10 rounded-full bg-slate-100 overflow-hidden shrink-0 border border-[#EBE7DF] group-hover:scale-105 transition-transform">
+
+                    <img
+                    src={student.avatar || "https://res.cloudinary.com/kvayxt5w/image/upload/v1788861354/profile-default.jpg"}
+                    alt={student.name}
+                    className="w-full h-full object-cover"
+                    />
+                  </div>
+
+                  {/* Nombre y Curso */}
+                  <div className="overflow-hidden">
+                    <h3 className="font-bold text-slate-800 text-sm truncate group-hover:text-[#2a6832] transition-colors">
+                      {student.name}
+                    </h3>
+
+                    <p className="text-xs text-slate-400 truncate">
+                      {student.course || "---"}
+
+                    </p>
+                    
+                  </div>
+
+                </Link>
+              ))}
+            </div>
+
+          )}
+
+          
+        </div>
       </div >
     </div>
   )
