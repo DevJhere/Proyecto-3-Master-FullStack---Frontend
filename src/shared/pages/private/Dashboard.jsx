@@ -28,7 +28,6 @@ export const Dashboard = () => {
   //Mostrar nombre capitalizado
   const userNameCap = user?.name?.split(" ")[0] || "Pedagogo/a";
 
-
   /* Estado para cargar las sesiones pendientes */
   const [ sessions, setSessions] = useState([]);
   const [ isLoading, setIsLoading ] = useState(true);
@@ -69,7 +68,6 @@ export const Dashboard = () => {
     return sessionsDate.getMonth() + 1 === currentMonth && sessionsDate.getFullYear() === currentYear
   }).length;
 
-
   /* Alumnos Activos y sesiones completada */
 
   //Estado para alumnos
@@ -106,7 +104,7 @@ export const Dashboard = () => {
 
   return (
     <div className="flex-1 overflow-y-auto">
-      {/* Contenedor Cabecera */}
+      {/* Contenedor */}
       <div className="max-w-8xl mx-auto px-8 py-6">
 
         {/* Contendedor cabecera */}
@@ -127,7 +125,7 @@ export const Dashboard = () => {
         </div>
 
         {/* Contenedor TARJETAS KPI */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
         {/* Alumnos Activos */}
         <div className="bg-[#EBF5EE] p-6 rounded-3xl border border-[#D8EBE0]">
             <p className="text-[11px] font-bold uppercase tracking-wider text-[#529471] mb-2">
@@ -167,10 +165,35 @@ export const Dashboard = () => {
           </p>
         </div>
 
-      </div>
+        </div>
 
+        {/* Contenedor Sesiones de Hoy */}
+        <div className="mb-10">
 
-      </div>
+          <div className="flex items-baseline justify-between mb-4">
+            <h2 className="text-lg font-semibold tracking-wider text-ink-strong">
+              Sesiones de hoy
+            </h2>
+            <NavLink
+            to="/students"
+            className={"text-sm font-medium text-[#529471] hover:underline"}
+            > Ver todos los alumnos → </NavLink>
+          </div>
+
+          {/* Card de Sesión */}
+          {todayDate.length === 0 ? (
+            <div className="text-center py-10 bg-white rounded-3xl border border-dashed border-[#EBE7DF]">
+              <p className="text-slate-400 text-sm">No hay sesiones programadas para hoy.</p>
+            </div>
+          ): (
+            // Si hay sesiones, recorremos la lista
+            <div className="space-y-4">
+              
+              
+            </div>
+          )} 
+        </div>
+      </div >
     </div>
   )
 }
