@@ -2,6 +2,7 @@ import { NavLink } from "react-router-dom"
 import { useAuth } from "../../hooks/useAuth"
 import { useState } from "react";
 import { useEffect } from "react";
+import { NavLink, Link } from "react-router-dom";
 import apiClient from "../../config/axios";
 
 
@@ -40,7 +41,8 @@ export const Dashboard = () => {
         setIsLoading(true);
         //Peticion a endpoint
         const response = await apiClient("/sessions");
-        setSessions(response.data.sessions || []);
+        
+        setSessions(Array.isArray(response.data) ? response.data : response.data.sessions || []); //Nuestro endpoint devuelve la data como array y si no es array, cogemos la propiedad sessions.
         
       } catch (err) {
         setError(err.response?.data?.message || "Error al cargar las sesiones.");
@@ -51,11 +53,30 @@ export const Dashboard = () => {
     fetchDashboardData();
   }, []);
 
-  //Sesiones de hoy
-  const todayStr = new Date().toISOString().slice(0,10);
+  //Funcion para obtener  hora local
+  const getLocaldateStr = (d) => {
+    if (!d) return "";
+    const date = new Date(d);
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
+    return `${year}-${month}-${day}`;
+  }
+
+
+  //Filtrado de sesiones de hoy
+  const todayStr = getLocaldateStr(new Date());
   const todaySessions = sessions.filter(session => {
-      const sessionDate = new Date(session.date || session.fecha).toISOString().slice(0, 10);
-      return sessionDate === todayStr;   
+    const sDate = getLocaldateStr(session.date || session.fecha);
+    return sDate === todayStr; 
+  });
+  
+  //Estos nos permite que solo se puedan ver la sesiones filtradas de cada usuario, es decir el admin no podra ver las sesiones asiganadas del pedagogo en su vista
+  const myTodaySessions = todaySessions.filter((session) => {
+    const pedagogoId = typeof session.pedagogoAsignado === "object"
+      ? session.pedagogoAsignado?._id
+      : session.pedagogoAsignado;
+    return pedagogoId === (user?._id || user?.id);
   });
 
   //TODO - Sesiones de este mes
@@ -118,7 +139,7 @@ export const Dashboard = () => {
           <p className="text-ink-muted mt-1 text-sm mb-8">Tienes {" "}
             <span className="font-600 text-sage">
               {/* TODO. Agregar las sesiones almacenadas en la base de datos para hoy*/}
-              {todaySessions.length} sesión{todaySessions.length != 1 ? "es" : ""}{" "}
+              {myTodaySessions.length} sesión{myTodaySessions.length != 1 ? "es" : ""}{" "}
             </span>
              pendientes para hoy.
           </p>
@@ -181,7 +202,7 @@ export const Dashboard = () => {
           </div>
 
           {/* Card de Sesión */}
-          {todayDate.length === 0 ? (
+          {myTodaySessions.length === 0 ? (
             <div className="text-center py-10 bg-white rounded-3xl border border-dashed border-[#EBE7DF]">
               <p className="text-slate-400 text-sm">No hay sesiones programadas para hoy.</p>
             </div>
@@ -189,6 +210,59 @@ export const Dashboard = () => {
             // Si hay sesiones, recorremos la lista
             <div className="space-y-4">
               
+              {myTodaySessions.map( (session) => {
+                // Aqui procesamos los datos de cada sesion individual
+                const timeFormatted =  session.date ? new Date(session.date).toLocaleTimeString("es-ES", { hour: "2-digit", minute: "2-digit"})
+                : "--:--";
+
+                //Obyenemos datos de Students - Con esto al tratarse de un objeto de mongoose, accedemos a sus propiedades. 
+                const studentData = typeof session.student === "object" ? session.student : students.find((s) => s._id === session.student);
+
+                //Recogemos los datos y los asignamos a variables que provienen de la base de datos
+                const name = studentData?.name || "Alumno sin nombre";
+                const diagnosis = studentData?.diagnosis || studentData?.diagnostico || "No diagnosticado";
+                const avatar = studentData?.avatar || "https://res.cloudinary.com/kvayxt5w/image/upload/v1788861354/profile-default.jpg";
+                const durationSession = session.duration ? `${session.duration} min` : "60 min";
+
+                return(
+                  
+                  <div
+                   key={session._id || session.id}
+                   className="bg-white rounded-3xl border border-[#EBE7DF] p-5 shadow-sm hover:shadow-md transition-shadow flex items-center justify-between"
+                  >
+                    {/* Columna Izquierda: Hora + Avatar + Datos alumno */}
+                    <div className="flex items-center gap-4">
+                      <div className="text-center pr-4 border-r border-[#EBE7DF]">
+                        <p className="text-base font-bold text-slate-800">{timeFormatted}</p>
+                        <p className="text-xs text-slate-400">{durationSession}</p>
+                      </div>
+
+                      <div className="w-10 h-10 rounded-full bg-slate-100 overflow-hidden shrink-0 border border-[#EBE7DF]">
+                        <img src={avatar} alt={name} className="w-full h-full object-cover" />
+                      </div>
+
+                      <div>
+                        <h3 className="font-bold text-slate-800 text-sm" >{name}</h3>
+                        <p className="text-xs text-slate-400">{session.notes}</p>
+                      </div>
+                    </div>
+
+                    {/* Columna Derecha: Boton de Accion */}
+                    <div className="flex items-center gap-2">
+                      <span className="px-3 py-1 bg-[#FDF1EE] text-[#E07A5F] rounded-full text-xs font-semibold">
+                        {diagnosis}
+                      </span>
+
+                      <span className={`text-xs font-medium ${session.status === "Completado" ? "text-[#529471]" : "text-slate-400"}`}>
+                        {session.status}
+                      </span>
+
+                    </div>
+                  </div>
+
+                );
+
+              })}
               
             </div>
           )} 
