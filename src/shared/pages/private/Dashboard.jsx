@@ -2,9 +2,10 @@ import { NavLink } from "react-router-dom"
 import { useAuth } from "../../hooks/useAuth"
 import { useState } from "react";
 import { useEffect } from "react";
-import { Link } from "react-router-dom";
 import apiClient from "../../config/axios";
-import { getAvatarUrl } from "../../utils/HelperAvatar";
+import { KpiCard } from "../../components/dashboard/KpiCard";
+import { SessionCard } from "../../components/dashboard/SessionCard";
+import { StudentQuickCard } from "../../components/dashboard/StudentQuickCard";
 
 
 export const Dashboard = () => {
@@ -121,9 +122,6 @@ export const Dashboard = () => {
   //Sesiones completadas
   const completedSessionsCount = sessions.filter(session => session.status === "Completado" || session.estado === "Completado").length;
 
-
-
-
   return (
     <div className="flex-1 overflow-y-auto">
       {/* Contenedor */}
@@ -148,45 +146,32 @@ export const Dashboard = () => {
 
         {/* Contenedor TARJETAS KPI */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
-        {/* Alumnos Activos */}
-        <div className="bg-[#EBF5EE] p-6 rounded-3xl border border-[#D8EBE0]">
-            <p className="text-[11px] font-bold uppercase tracking-wider text-[#529471] mb-2">
-            Alumnos Activos
-            </p>
-            <p className="text-3xl tracking-wider text-[#529471] font-semibold">
-                {isLoadingStudents ? "..." : activeStudentsCount}
-            </p>
-            <p className="text-xs text-[#529471] mt-1 font-medium">
-                {activeStudentsCount} Perfiles asignados
-            </p>
-        </div>
+          {/* Alumnos Activos */}
+          <KpiCard
+          title="Alumnos Activos"
+          value={activeStudentsCount}
+          subtitle={`${activeStudentsCount} Perfiles Asignados`}
+          isLoading={isLoadingStudents}
+          theme="green"
+          />
 
-        {/* Sesiones este mes */}
-        <div className="bg-[#EEF6FC] p-6 rounded-3xl border border-[#D5E6F5]">
-          <p className="text-[11px] font-bold uppercase tracking-wider text-[#4A86B8] mb-2">
-            Sesiones este mes
-          </p>
-          <p className="text-3xl tracking-wider text-[#4A86B8] font-semibold">
-            {isLoading ? "..." : sessionsThisMounthCount}
-          </p>
-          <p className="text-xs text-[#4A86B8] mt-1 font-medium">
-            {sessionsThisMounthCount} Programadas en el mes
-          </p>
-        </div>
+          {/* Sesiones este mes */}
+          <KpiCard
+          title="Sesiones este mes"
+          value={sessionsThisMounthCount}
+          subtitle={`${sessionsThisMounthCount} Programadas`}
+          isLoading={isLoading}
+          theme="blue"  
+          />
 
-        {/* Sesiones completadas */}
-        <div className="bg-[#FDF1EE] p-6 rounded-3xl border border-[#FADCD5]">
-          <p className="text-[11px] font-bold uppercase tracking-wider text-[#E07A5F] mb-2">
-            Sesiones Completadas
-          </p>
-          <p className="text-3xl tracking-wider text-[#D65F41] font-semibold">
-            {isLoading ? "..." : completedSessionsCount}
-          </p>
-          <p className="text-xs text-[#D65F41] mt-1 font-medium">
-            Realizadas con éxito
-          </p>
-        </div>
-
+          {/* Sesiones completadas */}
+          <KpiCard 
+          title="Sesiones Completadas"
+          value={completedSessionsCount}
+          subtitle={`${completedSessionsCount} Realizadas`}
+          isLoading={isLoading}
+          theme="coral"
+          />
         </div>
 
         {/* Contenedor Sesiones de Hoy */}
@@ -211,63 +196,13 @@ export const Dashboard = () => {
             // Si hay sesiones, recorremos la lista
             <div className="space-y-4">
               
-              {myTodaySessions.map( (session) => {
-                // Aqui procesamos los datos de cada sesion individual
-                const timeFormatted =  session.date ? new Date(session.date).toLocaleTimeString("es-ES", { hour: "2-digit", minute: "2-digit"})
-                : "--:--";
-
-                //Obyenemos datos de Students - Con esto al tratarse de un objeto de mongoose, accedemos a sus propiedades. 
-                const studentData = typeof session.student === "object" ? session.student : students.find((s) => s._id === session.student);
-
-                //Recogemos los datos y los asignamos a variables que provienen de la base de datos
-                const name = studentData?.name || "Alumno sin nombre";
-                const diagnosis = studentData?.diagnosis || studentData?.diagnostico || "No diagnosticado";
-                const durationSession = session.duration ? `${session.duration} min` : "60 min";
-
-                return(
-                  
-                  <Link
-                   key={session._id || session.id}
-                   to={studentData?._id ? `/students/${studentData._id}` : "/students"}
-                   className="bg-white rounded-3xl border border-[#EBE7DF] p-5 shadow-sm hover:shadow-md transition-shadow flex items-center justify-between"
-                  >
-                    {/* Columna Izquierda: Hora + Avatar + Datos alumno */}
-                    <div className="flex items-center gap-4">
-                      <div className="text-center pr-4 border-r border-[#EBE7DF]">
-                        <p className="text-base font-bold text-slate-800">{timeFormatted}</p>
-                        <p className="text-xs text-slate-400">{durationSession}</p>
-                      </div>
-
-                      <div className="w-10 h-10 rounded-full bg-slate-100 overflow-hidden shrink-0 border border-[#EBE7DF]">
-                        <img
-                          src={getAvatarUrl(studentData.avatar)}
-                          alt={studentData.name}
-                          className="w-full h-full object-cover"
-                        />
-                      </div>
-
-                      <div>
-                        <h3 className="font-bold text-slate-800 text-sm" >{name}</h3>
-                        <p className="text-xs text-slate-400">{session.notes}</p>
-                      </div>
-                    </div>
-
-                    {/* Columna Derecha: Boton de Accion */}
-                    <div className="flex items-center gap-2">
-                      <span className="px-3 py-1 bg-[#FDF1EE] text-[#E07A5F] rounded-full text-xs font-semibold">
-                        {diagnosis}
-                      </span>
-
-                      <span className={`text-xs font-medium ${session.status === "Completado" ? "text-[#529471]" : "text-slate-400"}`}>
-                        {session.status}
-                      </span>
-
-                    </div>
-                  </Link>
-
-                );
-
-              })}
+              {myTodaySessions.map( (session) => (
+               <SessionCard
+               key={session._id}
+               session={session}
+               students={students} 
+               />
+              ))}
               
             </div>
           )} 
@@ -290,36 +225,7 @@ export const Dashboard = () => {
             // Grid de 3 columons que muestras hasta 6 pacientes/alumnos principales
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
               {students.slice(0,6).map( (student) =>(
-
-                <Link
-                key={student._id}
-                to={`/students/${student._id}`}
-                className="bg-white rounded-2xl p-4 border border-[#EBE7DF] hover:border-[#529471] shadow-sm hover:shadow-md transition-all flex items-center gap-3 group cursor-pointer"
-                >
-                  {/* Avatar alumno */}
-                  <div className="w-10 h-10 rounded-full bg-slate-100 overflow-hidden shrink-0 border border-[#EBE7DF] group-hover:scale-105 transition-transform">
-
-                    <img
-                      src={getAvatarUrl(student.avatar)}
-                      alt={student.name}
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
-
-                  {/* Nombre y Curso */}
-                  <div className="overflow-hidden">
-                    <h3 className="font-bold text-slate-800 text-sm truncate group-hover:text-[#2a6832] transition-colors">
-                      {student.name}
-                    </h3>
-
-                    <p className="text-xs text-slate-400 truncate">
-                      {student.course || "---"}
-
-                    </p>
-                    
-                  </div>
-
-                </Link>
+                <StudentQuickCard key={student._id} student={student}/>
               ))}
             </div>
 

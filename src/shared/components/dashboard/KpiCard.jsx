@@ -8,12 +8,12 @@ export const KpiCard = ({title, value, subtitle, isLoading, theme = "green"}) =>
     blue:  { bg: "bg-[#EEF6FC]", border: "border-[#D5E6F5]", text: "text-[#4A86B8]", valText: "text-[#3D719C]" },
     coral: { bg: "bg-[#FDF1EE]", border: "border-[#FADCD5]", text: "text-[#E07A5F]", valText: "text-[#D65F41]"}
   }
-
+  //Obtenemos los estilos de la tarjeta
   const currentTheme = styles[theme] || styles.green;
-
-
+  
   return (
     <div className={`${currentTheme.bg} p-6 rounded-3xl border ${currentTheme.border}`}>
+      {/* Mostramos los datos dinamicamente */}
         <p className={`text-sm font-bold uppercase tracking-wider ${currentTheme.text} mb-2`}>
             {title}
         </p>
