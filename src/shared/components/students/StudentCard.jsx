@@ -24,19 +24,19 @@ export const StudentCard = ({student}) => {
             {/* Datos alumno - Fila Nombre + Diagnostico */}
             <div className="flex items-center justify-between gap-2">
                 
-                <h3 className="font-bold text-slate-800 text-base group-hover:text-[#529471] transition-colors truncate" >
+                <h3 className="font-bold text-slate-800 text-xs group-hover:text-[#529471] transition-colors truncate " >
                     {student.name}
                 </h3>
 
                 {/* Etiqueta Diagnostico */}
-                <span className="px-2.5 py-1 bg-[#FDF1EE] text-[#E07A5F] rounded-full text-xs font-semibold shrink-0">
+                <span className="px-0.5 py-1 bg-[#FDF1EE] text-[#E07A5F] rounded-full text-xs font-semibold shrink-0">
                     {DIAGNOSIS[student.diagnosis] || student.diagnosis || "Sin diagnóstico previo"}
                 </span>
             </div>
 
             {/* Datos alumno - Fila Curso + Edad */}
             <p className="text-xs text-slate-400 mt-1 mb-4">
-                {`${COURSES[student.course] || "Curso no asignado"} · ${student.age || "Edad no registrada"} años`}
+                {`${COURSES[student.course] || student.course || "Curso no asignado"} · ${student.age || "Edad no registrada"} años`}
             </p>
             
             {/* Datos alumno - Fila Tutor y Contador Sesiones */}

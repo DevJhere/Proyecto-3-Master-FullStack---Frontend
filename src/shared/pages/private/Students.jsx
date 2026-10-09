@@ -128,7 +128,6 @@ export const Students = () => {
         )}
 
         {/* No se encuentran alumnos */}
-        
         {!isLoadingStudents && !isLoadingSessions && filteredStudents.length === 0 && (
           <div className="text-center py-16 text-ink-faint">
             <LuSearchX className="w-16 h-16 mx-auto mb-4 text-ink-faint"/>
@@ -136,7 +135,20 @@ export const Students = () => {
           </div>
         )}
 
-
+        {/* Grid cards Alumnos */}
+        {!isLoadingStudents && !isLoadingSessions && filteredStudents.length > 0 && (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              {filteredStudents.map( (student) => (
+                <StudentCard
+                key={student._id}
+                student={{
+                  ...student,
+                  sessionsCount: getStudentSessionsCount(student._id),
+                }}
+                />
+              ))}
+          </div>
+        )}
 
       </div>
     </div>
