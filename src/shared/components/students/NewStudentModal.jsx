@@ -3,6 +3,7 @@ import { IoClose } from "react-icons/io5";
 import { COURSES, DIAGNOSIS, TUTOR_RELATIONSHIP } from "../../utils/constants";
 import apiClient from "../../config/axios";
 import { MdAddPhotoAlternate } from "react-icons/md";
+import { IoMdArrowBack } from "react-icons/io";
 
 export const NewStudentModal = ({isOpen, onClose, onStudentCreated}) => {
  
@@ -248,8 +249,8 @@ export const NewStudentModal = ({isOpen, onClose, onStudentCreated}) => {
                     <button
                     type="button"
                     onClick={() => setStep(1)}
-                    className="px-4 py-2 text-sm font-semibold text-slate-600 hover:text-slate-800">
-                      ← Atrás
+                    className="px-4 py-2 text-sm font-semibold text-slate-500 hover:text-slate-700">
+                    <IoMdArrowBack className="inline" size={18} />Atrás
                     </button>
                 ) : (
                     <button 
@@ -276,7 +277,6 @@ export const NewStudentModal = ({isOpen, onClose, onStudentCreated}) => {
                       {isSubmitting ? "Guardando..." : "Crear alumno"}
                     </button>
                  )}
-
             </div>
 
         </div>
