@@ -54,7 +54,7 @@ export const MainLayout = () => {
                                     className={({ isActive }) => `flex items-center gap-3 px-4 py-3 rounded-2xl text-sm font-medium transition-all duration-200 ${
                                         isActive 
                                         ? "bg-[#E2F2E9] text-[#2D6A4F] font-semibold"
-                                        : "text-slate-500 hover:bg-slate-50 hover:text-slate-800"
+                                        : "text-ink-muted hover:bg-slate-50 hover:text-slate-700"
                                     }`}
                                 >
                                     <span className="text-base">{item.icon}</span>
