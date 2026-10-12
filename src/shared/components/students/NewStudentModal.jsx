@@ -20,8 +20,8 @@ export const NewStudentModal = ({isOpen, onClose, onStudentCreated}) => {
     diagnosis: "",
     avatar: null, // Para la subida de imagen
     nameTutor: "",
-    tutorRelationship: "MADRE",
-    phoneTutor: "",
+    tutorRelationship: "Madre",
+    phoneNumberTutor: "",
     emailTutor: "",
   })
 
@@ -59,7 +59,7 @@ export const NewStudentModal = ({isOpen, onClose, onStudentCreated}) => {
     e.preventDefault();
     
     //Validamos los datos del paso 2
-    if(!formData.nameTutor.trim() || !formData.emailTutor.trim() || !formData.phoneTutor.trim() || !formData.tutorRelationship){
+    if(!formData.nameTutor.trim() || !formData.emailTutor.trim() || !formData.phoneNumberTutor.trim() || !formData.tutorRelationship){
         setError("Por favor, debe rellenar los campos obligatorios.")
         return;
     }
@@ -69,16 +69,50 @@ export const NewStudentModal = ({isOpen, onClose, onStudentCreated}) => {
         setIsSubmitting(true);
         setError("");
 
+        //Usamos FormData para permitir subida foto de perfil
+        const dataToSend = new FormData();
+
+        //Recorremos todas las claves del objeto formData
+        Object.keys(formData).forEach((key) => {
+            //Si el valor no es nulo ni vacio, lo agregamos a FormData
+            if (formData[key] !== null && formData[key] !== "") {
+                dataToSend.append(key, formData[key]);
+            }
+        });
+
         // Si subimos imagen usaremos FormData, si no, enviamos JSON
         // POST a /students
-        await apiClient.post("/students", formData);
+        await apiClient.post("/students", dataToSend, {
+            //Subida de archivos
+            headers: {
+                "Content-Type": "multipart/form-data",
+            },  
+        });
 
         //Avisamos a Students.jsx para refrescar la lista de Alumnos
         onStudentCreated();
+
+        //Reseteamos el formulario del Modal
+        setStep(1);
+        setFormData( {
+            name:"",
+            age: "",
+            course: "",
+            diagnosis: "",
+            avatar: null, // Para la subida de imagen
+            nameTutor: "",
+            tutorRelationship: "Madre",
+            phoneNumberTutor: "",
+            emailTutor: "",
+        });
+        setAvatarPreview(null); //Limpiamos el preview
         onClose(); //Cerramos el modal    
 
     } catch (err) {
-        setError(err.response?.data?.message || "Error al crear el alumno. Por favor, inténtelo de nuevo")
+        console.log("Respuesta completa del backend:", err.response?.data);
+        const errorDetails = err.response?.data?.error || err.response?.data?.message || "Error al crear el alumno.";
+        setError(errorDetails);
+        
     }finally {
         setIsSubmitting(false);
     }
@@ -236,10 +270,69 @@ export const NewStudentModal = ({isOpen, onClose, onStudentCreated}) => {
                         </div>
                     </div>
                 ): (
+                    // Campos del paso 2
                     <div className="space-y-4">
-                        {/* Campos del paso 2 */}
+                        {/* Nombre del tutor legal */}
+                        <div>
+                            <label className="block text-xs font-700 uppercase tracking-wide text-ink-muted mb-1.5">Nombre del tutor/a legal *</label>
+                            <input
+                            type="text"
+                            name="nameTutor"
+                            value={formData.nameTutor}
+                            onChange={handleChange}
+                            placeholder="Ej: Carmen Gómez Santos"
+                            className="w-full px-4 py-3 bg-bg border border-border rounded-xl text-sm text-ink placeholder:text-ink-faint focus:outline-none focus:border-sage transition-colors"
+                            />
+                        </div>
 
+                        <div>
+                            {/* Relación o parentesco */}
+                            <label className="block text-xs font-700 uppercase tracking-wide text-ink-muted mb-1.5" >Parentesco *</label>
+                            <select
+                            name="tutorRelationship"
+                            value={formData.tutorRelationship}
+                            onChange={handleChange}
+                            className="w-full px-4 py-3 bg-bg border border-border rounded-xl text-sm text-ink placeholder:text-ink-faint focus:outline-none focus:border-sage transition-colors"
+                            >
+                                {Object.entries(TUTOR_RELATIONSHIP).map(([key, value]) =>(
+                                    <option key={key} value={value}>
+                                        {value}
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-4">
+                            {/* Telefono y Email en 2 Col */}
+                            <div>
+                                <label className="block text-xs font-700 uppercase tracking-wide text-ink-muted mb-1.5">Teléfono *</label>
+                                <input 
+                                type="tel"
+                                name="phoneNumberTutor"
+                                value={formData.phoneNumberTutor}
+                                onChange={handleChange}
+                                placeholder="6XX XXX XXX"
+                                className="w-full px-4 py-3 bg-bg border border-border rounded-xl text-sm text-ink placeholder:text-ink-faint focus:outline-none focus:border-sage transition-colors"
+                                />
+                            </div>
+                            {/* Email Tutor */}
+                            <div>
+                                <label className="block text-xs font-700 uppercase tracking-wide text-ink-muted mb-1.5">Correo de Contacto *</label>
+                                <input
+                                type="email"
+                                name="emailTutor"
+                                value={formData.emailTutor}
+                                onChange={handleChange}
+                                placeholder="tutor@email.com"
+                                className="w-full px-4 py-3 bg-bg border border-border rounded-xl text-sm text-ink placeholder:text-ink-faint focus:outline-none focus:border-sage transition-colors"
+                                />
+                                
+                            </div>
+                        </div>
+                        
                     </div>
+
+                    
                 )}
             </div>
 
