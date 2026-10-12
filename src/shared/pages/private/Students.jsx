@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import apiClient from "../../config/axios";
 import { IoSearchOutline } from "react-icons/io5";
 import { LuSearchX } from "react-icons/lu";
+import { NewStudentModal } from "../../components/students/NewStudentModal";
 
 export const Students = () => {
 
@@ -15,8 +16,7 @@ export const Students = () => {
   const [ errorStudents, setErrorStudents ] = useState("");
 
   // Cargamos los datos de alumnos
-  useEffect( () => {
-    const fetchStudentsData = async() => {
+  const fetchStudentsData = async() => {
       try {
         setIsLoadingStudents(true);
         //Peticion a endpoint
@@ -29,6 +29,8 @@ export const Students = () => {
         setIsLoadingStudents(false);
       }
     };
+    
+  useEffect( () => {
     fetchStudentsData();
   }, []);
 
@@ -81,7 +83,11 @@ export const Students = () => {
       student.nameTutor?.toLowerCase().includes(term)
     );
     
-  });  
+  }); 
+
+
+  // Conexion modal Nuevo Alumno
+  const [ isModalOpen, setIsModalOPen ] = useState(false);
 
   return (
     <div className="flex-1 overflow-y-auto">
@@ -95,7 +101,10 @@ export const Students = () => {
 
           <button
           type="button"
-          onClick={() => {/* Ventana modal para crear alumno */}}
+          onClick={() => {
+            // Pasamos la ventana del modal creada
+            setIsModalOPen(true)
+          }}
           className="bg-[#529471] hover:bg-[#437a5d] text-white px-5 py-2.5 rounded-2xl font-semibold text-sm flex items-center gap-2 shadow-sm transition-all cursor-pointer self-start sm:self-auto"
           >
             <span className="text-lg">+</span>
@@ -149,6 +158,13 @@ export const Students = () => {
               ))}
           </div>
         )}
+
+        {/* Modal para Crear Alumno */}
+        <NewStudentModal
+        isOpen={isModalOpen}
+        onClose={ () => setIsModalOPen(false)}
+        onStudentCreated={fetchStudentsData}
+        />
 
       </div>
     </div>
