@@ -43,8 +43,8 @@ export const NewStudentModal = ({isOpen, onClose, onStudentCreated}) => {
     // Evitamos que el furmulario se enví de forma natica
     e.preventDefault();
     //Validmos los datos del paso 1
-    if(!formData.name.trim() || !formData.course){
-        setError("Por favor, debe rellenar el nombre y curso.")
+    if(!formData.name.trim() || !formData.course || !formData.age || !formData.diagnosis){
+        setError("Por favor, debe rellenar los campos obligatorios.")
         return;
     }
 
@@ -58,8 +58,8 @@ export const NewStudentModal = ({isOpen, onClose, onStudentCreated}) => {
     e.preventDefault();
     
     //Validamos los datos del paso 2
-    if(!formData.nameTutor.trim()){
-        setError("Por favor, debe indicar el tutor.")
+    if(!formData.nameTutor.trim() || !formData.emailTutor.trim() || !formData.phoneTutor.trim() || !formData.tutorRelationship){
+        setError("Por favor, debe rellenar los campos obligatorios.")
         return;
     }
 
