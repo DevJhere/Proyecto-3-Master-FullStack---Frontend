@@ -2,7 +2,7 @@ import { useState } from "react";
 import { IoClose } from "react-icons/io5";
 import { COURSES, DIAGNOSIS, TUTOR_RELATIONSHIP } from "../../utils/constants";
 import apiClient from "../../config/axios";
-import { set } from "react-hook-form";
+import { MdAddPhotoAlternate } from "react-icons/md";
 
 export const NewStudentModal = ({isOpen, onClose, onStudentCreated}) => {
  
@@ -23,6 +23,9 @@ export const NewStudentModal = ({isOpen, onClose, onStudentCreated}) => {
     phoneTutor: "",
     emailTutor: "",
   })
+
+  // Estado de preview de imagen Avatar
+  const [avatarPreview, setAvatarPreview] = useState(null);
 
   if(!isOpen) return null; //Si el modal no esta abierto, no renderizamos nada
  
@@ -80,6 +83,22 @@ export const NewStudentModal = ({isOpen, onClose, onStudentCreated}) => {
     }
   };
 
+ //Función para capturar el archivo
+ const handleAvatarChange = (e) => {
+    
+    //Validamos el tipo de imagen
+    const file = e.target.files[0];
+    if (file) {
+        setFormData( (prev) => ( {...prev, avatar: file}));
+        setAvatarPreview(URL.createObjectURL(file));
+    }
+ };
+
+ // Función para seleccionar los tags de diagnóstico
+ const handleTagClick = (type, value) => {
+    setFormData( (prev) => ({ ...prev, [type]: value}));
+ };
+
   return (
     <div className="fixed inset-0 bg-ink/30 backdrop-blur-sm flex items-center justify-center z-50 p-4" >
         <div className="bg-white w-full max-w-lg rounded-3xl shadow-xl overflow-hidden flex flex-col max-h-[90vh]">
@@ -112,8 +131,108 @@ export const NewStudentModal = ({isOpen, onClose, onStudentCreated}) => {
                 {step === 1 ? (
                     // Campors del paso 1
                     <div className="space-y-4">
+                        {/* Subida de foto perfil con Preview */}
+                        <div className="flex items-center gap-4 pb-2">
+                            <div className="relative w-16 h-16 rounded-full bg-[#FAF8F5] border-2 border-dashed border-[#EBE7DF] flex items-center justify-center overflow-hidden shrink-0">
+                                {avatarPreview ? (
+                                    <img src={avatarPreview} alt="Avatar Preview" className="w-full h-full object-cover" />
+                                ) : (
+                                    <span className="text-xs text-slate-500 font-medium">
+                                        <MdAddPhotoAlternate size={20} />
+                                    </span>
+                                )}
+                            </div>
 
+                           <div>
+                                <p className="text-xs font-600 text-ink mb-1">Foto del alumno</p>
+                                <label className="mt-1.5 text-xs text-sage font-600 hover:underline cursor-pointer">
+                                    Seleccionar imagen
+                                    <input 
+                                    type="file"
+                                    accept="image/*"
+                                    onChange={handleAvatarChange}
+                                    className="hidden"
+                                    />
+                                </label>
+                                <p className="text-[11px] text-slate-400 mt-1">PNG o JPG (máx. 5MB)</p>
+                            </div>
+                        </div>
 
+                        {/* Nombre Completo */}
+                        <div>
+                            <label className="block text-xs font-700 uppercase tracking-wide text-ink-muted mb-1.5">Nombre Completo *</label>
+                            <input
+                            type="text"
+                            name="name"
+                            value={formData.name}
+                            onChange={handleChange}
+                            placeholder="Ej: Lucía Navarro Martinéz"
+                            className="w-full px-4 py-3 bg-bg border border-border rounded-xl text-sm text-ink placeholder:text-ink-faint focus:outline-none focus:border-sage transition-colors" />
+                        </div>
+
+                        {/* Edad y Curos en dos Columnas */}
+                        <div className="grid grid-cols-2 gap-4">
+                            <div>
+                                <label className="block text-xs font-700 uppercase tracking-wide text-ink-muted mb-1.5">Edad *</label>
+                                <input 
+                                type="number"
+                                name="age"
+                                placeholder="Ej: 9"
+                                min={3}
+                                max={18}
+                                value={formData.age}
+                                onChange={handleChange}
+                                className="w-full px-4 py-3 bg-bg border border-border rounded-xl text-sm text-ink placeholder:text-ink-faint focus:outline-none focus:border-sage transition-colors"
+
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-xs font-700 uppercase tracking-wide text-ink-muted mb-1.5">Curso *</label>
+                                <select
+                                name="course"
+                                value={formData.course}
+                                onChange={handleChange}
+                                className="w-full px-4 py-3 bg-bg border border-border rounded-xl text-sm text-ink placeholder:text-ink-faint focus:outline-none focus:border-sage transition-colors"
+                                >
+                                <option value="">Seleccionar</option>
+                                {/*  Mapeamos los cursos que provienen de la base de datos */}
+                                {Object.entries(COURSES).map( ([key, value]) => (
+                                        <option
+                                        key={key}
+                                        value={value}
+                                        >
+                                        {value}   
+                                        </option>
+                                ))}
+                                </select>
+                            </div>
+                        </div>
+
+                        {/* Diagnostico */}
+                        <div>
+                            <label className="block text-xs font-700 uppercase tracking-wide text-ink-muted mb-1.5">Área de intervención principal</label>
+                            <div className="grid grid-cols-2 gap-2 mt-2">
+                                <div className="flex flex-wrap gap-2 col-span-2">
+                                    {Object.entries(DIAGNOSIS).map( ([key, value]) => (
+                                        <button
+                                        key={key}
+                                        type="button"
+                                        onClick={ () => handleTagClick('diagnosis', value)}
+                                        className={`px-3 py-1.5 rounded-full text-xs font-600 border transition-all
+                                        ${formData.diagnosis === value
+                                            ? "bg-sage text-white border-sage"
+                                            : "bg-white text-ink-muted border-border hover:border-sage"
+                                        }`}
+                                        >
+                                        {value}
+                                        </button>
+
+                                    ))}
+                                </div>
+                            </div>
+
+                        </div>
                     </div>
                 ): (
                     <div className="space-y-4">
