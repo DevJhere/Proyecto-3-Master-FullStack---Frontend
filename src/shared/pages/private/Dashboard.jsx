@@ -190,7 +190,7 @@ export const Dashboard = () => {
           {/* Card de Sesión */}
           {myTodaySessions.length === 0 ? (
             <div className="text-center py-10 bg-white rounded-3xl border border-dashed border-[#EBE7DF]">
-              <p className="text-slate-400 text-sm">No hay sesiones programadas para hoy.</p>
+              <p className="text-ink-muted hover:bg-slate-50 hover:text-slate-700">No hay sesiones programadas para hoy.</p>
             </div>
           ): (
             // Si hay sesiones, recorremos la lista

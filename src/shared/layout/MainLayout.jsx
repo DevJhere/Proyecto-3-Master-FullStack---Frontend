@@ -74,11 +74,11 @@ export const MainLayout = () => {
                         </div>
 
                         <div className="overflow-hidden">
-                            <p className="text-sm font-bold text-slate-800 truncate leading-snug">
+                            <p className="text-sm font-bold text-slate-800  truncate leading-snug">
                                 {user?.name || "Usuario"}
                             </p>
 
-                            <p className="text-xs text-slate-400 truncate">
+                            <p className="text-xs text-ink-muted truncate">
                                 {user?.specialization || (user?.rol === 'admin' ? 'admin' : 'pedagogo')}
                             </p>
                         </div>
@@ -88,7 +88,7 @@ export const MainLayout = () => {
                     <button
                         type="button"
                         onClick={logout}
-                        className="w-full flex items-center gap-3 px-2 py-2 text-sm font-medium text-slate-400 hover:text-red-500 transition-colors"
+                        className="w-full flex items-center gap-3 px-2 py-2 text-sm font-medium text-ink-muted hover:text-red-500 transition-colors"
                     >
                         <span className="text-base"><IoExitOutline /></span>
                         <span>Cerrar sesión</span>
