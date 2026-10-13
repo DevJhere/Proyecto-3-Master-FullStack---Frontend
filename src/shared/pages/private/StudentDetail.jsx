@@ -96,6 +96,38 @@ export const StudentDetail = () => {
                     <StudentSidebar student={student}/>
                 </div>
 
+                {/* Columna Derecha */}
+                <div className="lg:col-span-8 space-y-6">
+                    {/* Selector de pestaña  */}
+                    <div className="bg-[#EBE7DF]/40 p-1 rounded-xl inline-flex gap-1 border border-[#EBE7DF]">
+                        <button 
+                        type="button"
+                        onClick={ () => setActiveTab("intervention")}
+                        className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all cursor-pointer ${
+                        activeTab === "intervention"
+                        ? "bg-white text-ink-muted shadow-sm"
+                        : "text-ink-muted hover:text-shadow-ink-muted"
+                        }`}
+                        >
+                        Historial de Intervención
+                        </button>
+                        <button 
+                        type="button"
+                        onClick={ () => setActiveTab("reports")}
+                        className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all cursor-pointer ${
+                        activeTab === "reports"
+                        ? "bg-white text-ink-muted shadow-sm"
+                        : "text-ink-muted hover:text-shadow-ink-muted"
+                        }`}
+                        >
+                        Informes
+                        </button>
+
+
+                    </div>
+
+                </div>
+
             </div>
         )}
     </div>
