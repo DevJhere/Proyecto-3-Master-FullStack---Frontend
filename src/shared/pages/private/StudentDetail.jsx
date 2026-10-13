@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
 import apiClient from "../../config/axios";
-import { IoArrowBack, IoTrashOutline } from "react-icons/io5";
-import { use } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { IoTrashOutline } from "react-icons/io5";
+import { IoIosArrowBack } from "react-icons/io";
+import { useNavigate, useParams, Link } from "react-router-dom";
+import { StudentSidebar } from "../../components/students/StudentSidebar"
 
 export const StudentDetail = () => {
 
@@ -17,7 +18,7 @@ export const StudentDetail = () => {
   const [ error, setError] = useState('');
 
   //Pestaña activa Intervención | Informes
-  const [activeTab, seActiveTab] = useState('intervention');
+  const [activeTab, setActiveTab] = useState('intervention');
 
   // Esta para desplegar el formulario Nueva sesion
   const [ showNewSession, setShowNewSession] = useState(false);
@@ -46,7 +47,7 @@ export const StudentDetail = () => {
         setSessions(filteredSessions);
         
       } catch (err) {
-        setErrorStudents(err.response?.data?.message || "Error al cargar información del alumno.");
+        setError(err.response?.data?.message || "Error al cargar información del alumno.");
       } finally {
         setIsLoadingStudents(false);
       }
@@ -71,6 +72,32 @@ export const StudentDetail = () => {
   };
 
   return (
-    <div>StudentDetail</div>
+    <div className="max-w-7xl mx-auto space-y-6">
+        {/* Boton volver a alaumnos */}
+        <Link
+        to="/students"
+        className="inline-flex items-center gap-2 text-sm text-ink-muted hover:text-slate-800 font-medium"
+        >
+            <IoIosArrowBack size={16}/>
+            Volver a alumnos
+        </Link>
+
+        {/* Estados de carga y error */}
+        {isLoadingStudents ? (
+            <div className="text-center py-12 text-slate-400 font-medium text-sm tracking-wide">Cargando expediente...</div>
+        ) : error ? (
+            <div className="text-center py-12 text-red-500 font-medium text-sm">{error}</div>
+        ) : (
+            // Grid 2 columnas
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+
+                {/* Columna Izquierda */}
+                <div className="lg:col-span-4">
+                    <StudentSidebar student={student}/>
+                </div>
+
+            </div>
+        )}
+    </div>
   )
 }

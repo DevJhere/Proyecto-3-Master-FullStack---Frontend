@@ -109,7 +109,6 @@ export const NewStudentModal = ({isOpen, onClose, onStudentCreated}) => {
         onClose(); //Cerramos el modal    
 
     } catch (err) {
-        console.log("Respuesta completa del backend:", err.response?.data);
         const errorDetails = err.response?.data?.error || err.response?.data?.message || "Error al crear el alumno.";
         setError(errorDetails);
         
