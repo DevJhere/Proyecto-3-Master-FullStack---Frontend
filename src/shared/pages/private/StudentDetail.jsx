@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import apiClient from "../../config/axios";
-import { IoArrowBack, IoTrainOutline } from "react-icons/io5";
+import { IoArrowBack, IoTrashOutline } from "react-icons/io5";
 import { use } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 
@@ -13,7 +13,7 @@ export const StudentDetail = () => {
   //Estados de alumno y sesiones
   const [ student, setStudent] = useState(null);
   const [ sessions, setSessions] = useState([]);
-  const [ isLoading, setIsLoading] = useState(true);
+  const [ isLoadingStudents, setIsLoadingStudents] = useState(true);
   const [ error, setError] = useState('');
 
   //Pestaña activa Intervención | Informes
@@ -25,7 +25,7 @@ export const StudentDetail = () => {
   // Cargamos datos del estudiante
   useEffect( () => {
 
-    const fetchStudentsData = async() => {
+    const fetchStudentData = async() => {
       try {
         setIsLoadingStudents(true);
         //Hacemos peticiones simultaneas para obtener alumno y sesiones

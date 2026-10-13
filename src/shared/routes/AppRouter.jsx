@@ -13,6 +13,7 @@ import { Register } from "../pages/public/Register";
 // Importaciones de Rutas Privadas
 import { Dashboard } from "../pages/private/Dashboard";
 import { Students } from "../pages/private/Students";
+import { StudentDetail } from "../pages/private/StudentDetail";
 import { Sessions } from "../pages/private/Sessions";
 import {Profile} from "../pages/private/Profile";
   
@@ -41,7 +42,7 @@ export const AppRouter = () => {
                         <Route path="/dashboard" element={<Dashboard />}/>
                         <Route path="/students" element={<Students />}/>
                         
-                        {/* <Route path="/students/:id" element={<StudentDetailPage />} /> */}
+                        <Route path="/students/:id" element={<StudentDetail />} />
                         <Route path="/sessions" element={<Sessions />} />
 
                         <Route path="/profile" element={<Profile />} />
