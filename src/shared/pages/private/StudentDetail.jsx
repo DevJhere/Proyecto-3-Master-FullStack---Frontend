@@ -6,6 +6,7 @@ import { useNavigate, useParams, Link } from "react-router-dom";
 import { StudentSidebar } from "../../components/students/StudentSidebar"
 import { FaPlus } from "react-icons/fa";
 import { SessionTimeline } from "../../components/students/SessionTimeline";
+import { NewSessionForm } from "../../components/students/NewSessionForm";
 
 export const StudentDetail = () => {
 
@@ -151,10 +152,19 @@ export const StudentDetail = () => {
                         onClick={ () => setShowNewSession(true)}
                         className="px-4 py-2 bg-[#529471] hover:bg-[#437a5d] text-white rounded-xl text-xs sm:text-sm font-semibold flex items-center gap-1.5 shadow-sm transition-all cursor-pointer">
                           <FaPlus size={15}/>
-                          <span className="hidden sm:inline">Nueva Sesión</span>
+                          <span className="hidden sm:inline">Nuevo Registro</span>
                         </button>
                       </div>
                     </div>
+
+                    {/* Formulario de Nueva Sesión (se muestra solo cuando showNewSession es true)  */}
+                    {showNewSession && (
+                      <NewSessionForm
+                      studentId={id}
+                      onClose={ () => setShowNewSession(false)}
+                      onSessionCreated={fetchStudentData}
+                      />
+                    )}
 
                     {/* Contenido segun pestaña */}
                     {activeTab === "intervention" ? (
@@ -169,7 +179,7 @@ export const StudentDetail = () => {
             </div>
         )}
 
-        
+
     </div>
   )
 }
