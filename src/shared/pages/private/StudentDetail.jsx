@@ -84,7 +84,7 @@ export const StudentDetail = () => {
             Volver a alumnos
         </Link>
 
-        {/* Estados de carga y error */}
+        {/* Estados de carga, error y Columna Izquierda y Derecha */}
         {isLoadingStudents ? (
             <div className="text-center py-12 text-slate-400 font-medium text-sm tracking-wide">Cargando expediente...</div>
         ) : error ? (
@@ -168,6 +168,8 @@ export const StudentDetail = () => {
 
             </div>
         )}
+
+        
     </div>
   )
 }
