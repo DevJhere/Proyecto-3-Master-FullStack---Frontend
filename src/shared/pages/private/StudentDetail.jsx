@@ -4,6 +4,8 @@ import { IoTrashOutline } from "react-icons/io5";
 import { IoIosArrowBack } from "react-icons/io";
 import { useNavigate, useParams, Link } from "react-router-dom";
 import { StudentSidebar } from "../../components/students/StudentSidebar"
+import { FaPlus } from "react-icons/fa";
+import { SessionTimeline } from "../../components/students/SessionTimeline";
 
 export const StudentDetail = () => {
 
@@ -23,10 +25,8 @@ export const StudentDetail = () => {
   // Esta para desplegar el formulario Nueva sesion
   const [ showNewSession, setShowNewSession] = useState(false);
 
-  // Cargamos datos del estudiante
-  useEffect( () => {
-
-    const fetchStudentData = async() => {
+  // Función para obtener los datos del estudiante
+  const fetchStudentData = async() => {
       try {
         setIsLoadingStudents(true);
         //Hacemos peticiones simultaneas para obtener alumno y sesiones
@@ -53,6 +53,8 @@ export const StudentDetail = () => {
       }
     };
 
+  // Cargamos datos del estudiante
+  useEffect( () => {
     fetchStudentData();
   }, [id]);
 
@@ -105,7 +107,7 @@ export const StudentDetail = () => {
                         onClick={ () => setActiveTab("intervention")}
                         className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all cursor-pointer ${
                         activeTab === "intervention"
-                        ? "bg-white text-ink-muted shadow-sm"
+                        ? "bg-white text-ink shadow-sm"
                         : "text-ink-muted hover:text-shadow-ink-muted"
                         }`}
                         >
@@ -116,16 +118,52 @@ export const StudentDetail = () => {
                         onClick={ () => setActiveTab("reports")}
                         className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all cursor-pointer ${
                         activeTab === "reports"
-                        ? "bg-white text-ink-muted shadow-sm"
+                        ? "bg-white text-ink shadow-sm"
                         : "text-ink-muted hover:text-shadow-ink-muted"
                         }`}
                         >
                         Informes
                         </button>
-
-
                     </div>
 
+                    {/* Barra subcabecera: Contador + Botones de acción */}
+                    <div className="flex items-center justify-between gap-4 flex-wrap">
+                      <p className="text-xs sm:text-sm text-ink-muted font-medium">
+                        {sessions.length} registro{sessions.length !== 1 ? "s" : ""} 
+                      </p>
+
+                      <div className="flex items-center gap-2">
+                        {/* Boton eliminar Alumno */}
+                        <button
+                        type="button"
+                        onClick={handleDeleteStudent}
+                        className="px-4 py-2 bg-[#e06262] hover:bg-[#ee4a4a] text-white rounded-xl text-xs sm:text-sm font-semibold flex items-center gap-1.5 shadow-sm transition-all cursor-pointer"
+                        title="Eliminar expediente"
+                        >
+                          <IoTrashOutline size={15}/>
+                          <span className="hidden sm:inline">Eliminar Alumno</span>
+
+                        </button>
+
+                        {/* Boton añadir Sesion */}
+                        <button
+                        type="button"
+                        onClick={ () => setShowNewSession(true)}
+                        className="px-4 py-2 bg-[#529471] hover:bg-[#437a5d] text-white rounded-xl text-xs sm:text-sm font-semibold flex items-center gap-1.5 shadow-sm transition-all cursor-pointer">
+                          <FaPlus size={15}/>
+                          <span className="hidden sm:inline">Nueva Sesión</span>
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Contenido segun pestaña */}
+                    {activeTab === "intervention" ? (
+                      <SessionTimeline sessions={sessions}/>
+                    ) : (
+                      <div className="text-center py-12 text-ink-faint text-sm">
+                        <p>Aquí se mostrarán los informes y documentos</p>
+                      </div>
+                    )}
                 </div>
 
             </div>
