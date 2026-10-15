@@ -61,7 +61,6 @@ export const NewSessionForm = ({studentId, onClose, onSessionCreated}) => {
             dataToSend.append("student", studentId);
             dataToSend.append("date", formData.date);
             dataToSend.append("duration", formData.duration);
-            dataToSend.append("status", formData.status);
             dataToSend.append("notes", formData.notes);
             dataToSend.append("attachmentDocument", formData.attachmentDocument);
 
@@ -134,31 +133,6 @@ export const NewSessionForm = ({studentId, onClose, onSessionCreated}) => {
             </div>
         </div>
 
-        {/* Fila 2: Selector de estado */}
-        <div>
-            <label className="block text-[10px] font-bold text-ink-muted uppercase tracking-wider mb-1.5"> Estado de la sesión * </label>
-            <div className="flex gap-2">
-                {["Completado", "Pendiente", "Cancelado"].map( (state) =>(
-                    <button
-                    key={state}
-                    type="button"
-                    onClick={ () => setFormData( (prev) => ( {...prev, status: state}))}
-                    className={`px-3 py-1.5 rounded-full text-xs font-semibold border transition-all cursor-pointer ${
-                        formData.status === state
-                        ? state === "Completado"
-                            ? "bg-[#529471] text-white border-[#529471]"
-                            : state === "Cancelado"
-                            ? "bg-[#DC2626] text-white border-[#DC2626]"
-                            : "bg-[#62c7da] text-white border-[#62c7da]"
-                        : "bg-white text-ink-muted border-[#EBE7DF] hover:border-slate-300"
-                        }`}
-                    >
-                       ● {state}
-                    </button>
-                ))}
-
-            </div>
-        </div>
 
         {/* Fila 3: Observaciones/ Notas */}
         <div>
