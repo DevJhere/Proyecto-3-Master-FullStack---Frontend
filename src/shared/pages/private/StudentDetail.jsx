@@ -131,7 +131,9 @@ export const StudentDetail = () => {
                     {/* Barra subcabecera: Contador + Botones de acción */}
                     <div className="flex items-center justify-between gap-4 flex-wrap">
                       <p className="text-xs sm:text-sm text-ink-muted font-medium">
-                        {sessions.length} registro{sessions.length !== 1 ? "s" : ""} 
+                         {activeTab === "intervention"
+                         ? `${sessions.length} registro${sessions.length !== 1 ? "s" : ""} de intervención`
+                         : `${(student?.reports || []).length} informe${(student?.reports || []).length !== 1 ? "s" : ""}`}
                       </p>
 
                       <div className="flex items-center gap-2">
@@ -169,11 +171,12 @@ export const StudentDetail = () => {
 
                     {/* Contenido segun pestaña */}
                     {activeTab === "intervention" ? (
-                      <SessionTimeline sessions={sessions}/>
+                      <SessionTimeline sessions={sessions}
+                      onSessionUpdated={fetchStudentData}/>
                     ) : (
                       <ReportList
                       studentId={id}
-                      sessions={sessions}
+                      reports={student?.reports || []} //Nos aseguramos de que siempre sea un array aunque no tenga informes
                       onReportUploaded={fetchStudentData} />
                     )}
                 </div>

@@ -3,7 +3,9 @@ import { useState } from "react";
 import { FiFileText, FiDownload, FiUploadCloud } from "react-icons/fi";
 import { IoClose } from "react-icons/io5";
 
-export const ReportList = ( {studentId, sessions = [], onReportUploaded}) => {
+
+
+export const ReportList = ( {studentId, reports = [], onReportUploaded}) => {
 
   // Definimos estados locales
   const [ isUploading, setIsUploading ] = useState(false);
@@ -13,10 +15,6 @@ export const ReportList = ( {studentId, sessions = [], onReportUploaded}) => {
   // Estado para gestionar el título y el archivo del reporte
   const [ title, setTitle ] = useState("");
   const [ file, setFile ] = useState(null);
-  
-  // Filtramos las sesiones que tienen documento adjunto
-  const reports = sessions.filter( (session) => Boolean(session.attachmentDocument));
-
 
   //Formateador de fecha
   const formatDate = (dateString) => {
@@ -48,15 +46,11 @@ export const ReportList = ( {studentId, sessions = [], onReportUploaded}) => {
 
       // Capturamos los datos para enviar
       const dataToSend = new FormData();
-      dataToSend.append("student", studentId);
-      dataToSend.append("date", new Date().toISOString());
-      dataToSend.append("duration", 60);
-      dataToSend.append("status", "Completado");
-      dataToSend.append("notes", title.trim() || "Informe de Intervención");
+      dataToSend.append("title", title.trim() || "Informe de Evaluacion");
       dataToSend.append("attachmentDocument", file);
 
       //Solicitud a la API
-      await apiClient.post("/sessions", dataToSend, {
+      await apiClient.post(`/students/${studentId}/reports`, dataToSend, {
         headers: { "Content-Type": "multipart/form-data" }
       });
 
@@ -116,7 +110,7 @@ export const ReportList = ( {studentId, sessions = [], onReportUploaded}) => {
 
                 <div className="overflow-hidden">
                   <h4 className="font-semibold text-ink-muted text-xs truncate">
-                    {report.notes || "Informe de Evaluación"}
+                    {report.title || "Informe de Evaluación"}
                   </h4>
                   <p className="text-xs text-ink-faint mt-0.5">
                     {formatDate(report.date || report.createdAt)} · Documento adjunto
