@@ -7,6 +7,7 @@ import { StudentSidebar } from "../../components/students/StudentSidebar"
 import { FaPlus } from "react-icons/fa";
 import { SessionTimeline } from "../../components/students/SessionTimeline";
 import { NewSessionForm } from "../../components/students/NewSessionForm";
+import { ReportList } from "../../components/students/ReportList";
 
 export const StudentDetail = () => {
 
@@ -170,9 +171,10 @@ export const StudentDetail = () => {
                     {activeTab === "intervention" ? (
                       <SessionTimeline sessions={sessions}/>
                     ) : (
-                      <div className="text-center py-12 text-ink-faint text-sm">
-                        <p>Aquí se mostrarán los informes y documentos</p>
-                      </div>
+                      <ReportList
+                      studentId={id}
+                      sessions={sessions}
+                      onReportUploaded={fetchStudentData} />
                     )}
                 </div>
 
