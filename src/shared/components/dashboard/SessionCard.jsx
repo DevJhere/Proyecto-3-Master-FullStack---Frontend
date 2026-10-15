@@ -9,8 +9,18 @@ export const SessionCard = ({ session, students }) => {
   const timeFormatted = session.date ? new Date(session.date).toLocaleTimeString("es-ES", { hour: "2-digit", minute: "2-digit" })
     : "--:--";
 
-  //Obyenemos datos de Students - Con esto al tratarse de un objeto de mongoose, accedemos a sus propiedades. 
-  const studentData = typeof session.student === "object" ? session.student : students.find((s) => s._id === session.student);
+  /*Obyenemos datos de Students - Con esto al tratarse de un objeto de mongoose, accedemos a sus propiedades. */
+  
+  // Obtenemos el ID del alumno (sea objeto o string)
+  const studentId = typeof session.student === "object" ? session.student?._id : session.student;
+
+  const fullStudent = students.find((s) => s._id === studentId);
+
+  // Combinamos: si session.student viene incompleto, lo completamos con fullStudent
+  const studentData = {
+    ...(typeof session.student === "object" ? session.student : {}),
+    ...fullStudent,
+  };
 
   //Recogemos los datos y los asignamos a variables que provienen de la base de datos
   const name = studentData?.name || "Alumno sin nombre";
