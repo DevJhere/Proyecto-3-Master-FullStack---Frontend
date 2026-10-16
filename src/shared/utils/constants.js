@@ -67,6 +67,16 @@ const SIZE_FILES = {
   MAX_SIZE_20MB: 20 * 1024 * 1024, //20MB - PARA DOCUMENTOS
 };
 
+// Franjas horarias mostradas en el calendario escolar
+const HOURS = [9, 10, 11, 12, 13, 14, 15, 16, 17];
+// Paletas pastel exactas de la maqueta
+const PASTEL_THEMES = [
+  { bg: "bg-[#EEF7FC]", text: "text-[#2C6E91]", border: "border-l-[#59A4CC]" }, // Azul (ej: Sofía)
+  { bg: "bg-[#F4F0FA]", text: "text-[#69488E]", border: "border-l-[#A582C9]" }, // Lila (ej: María, David)
+  { bg: "bg-[#FDF3EE]", text: "text-[#A65B32]", border: "border-l-[#E07A5F]" }, // Melocotón (ej: Lucas, Elena)
+  { bg: "bg-[#EEF7F2]", text: "text-[#2D6A4F]", border: "border-l-[#529471]" }, // Menta (ej: Pablo)
+];
+
 export {
   SPECIALIZATIONS,
   USER_ROLES,
@@ -75,4 +85,6 @@ export {
   TUTOR_RELATIONSHIP,
   SESSION_STATUS,
   SIZE_FILES,
+  HOURS,
+  PASTEL_THEMES,
 };
