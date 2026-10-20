@@ -71,6 +71,12 @@ export const AuthProvider = ({children}) =>{
         setUser(null);
     };
 
+    // Función para actualizar datos de usuario en memoria y en LocalStorage
+    const updateUser = (updateUser) => {
+        setUser(updateUser);
+        localStorage.setItem("user", JSON.stringify(updateUser))
+    };
+
     //Estado global
     const value = {
         user,
@@ -78,7 +84,8 @@ export const AuthProvider = ({children}) =>{
         isAuthenticated: !!user,
         isLoading,
         login,
-        logout
+        logout, 
+        updateUser // exportamos la funcion updateUser
     };
 
     return (
