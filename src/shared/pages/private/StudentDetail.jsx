@@ -8,6 +8,8 @@ import { FaPlus } from "react-icons/fa";
 import { SessionTimeline } from "../../components/students/SessionTimeline";
 import { NewSessionForm } from "../../components/students/NewSessionForm";
 import { ReportList } from "../../components/students/ReportList";
+import { normalizeSessions, getApiErrorMessage } from "../../utils/APIHelpers";
+
 
 export const StudentDetail = () => {
 
@@ -40,16 +42,13 @@ export const StudentDetail = () => {
         //Almacenamos el alumno que se ha traido de la petición
         setStudent(studentRes.data);
 
-        //Filtramos sesiones para el alumno seleccionado
-        const allSessions = Array.isArray(sessionsRes.data) 
-        ? sessionsRes.data
-        : sessionsRes.data.sessions || [];
-
-        const filteredSessions = allSessions.filter( session => (session.student?._id || session.student) === id);
+        //Usamos helper normalizador
+        const allSessions = normalizeSessions(sessionsRes);
+        const filteredSessions = allSessions.filter(session => (session.student?._id || session.student) === id);
         setSessions(filteredSessions);
         
       } catch (err) {
-        setError(err.response?.data?.message || "Error al cargar información del alumno.");
+        setError(getApiErrorMessage(err, "Error al cargar la información del alumno"));
       } finally {
         setIsLoadingStudents(false);
       }

@@ -7,6 +7,7 @@ import { KpiCard } from "../../components/dashboard/KpiCard";
 import { SessionCard } from "../../components/dashboard/SessionCard";
 import { StudentQuickCard } from "../../components/dashboard/StudentQuickCard";
 import { formatCapitalizedDate, toLocalDateString } from "../../utils/DateHelpers"
+import { normalizeSessions, normalizeStudents, getApiErrorMessage } from "../../utils/APIHelpers";
 
 
 export const Dashboard = () => {
@@ -25,7 +26,7 @@ export const Dashboard = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
 
-  // Cargamos los datos
+  // Cargamos los datos de las sesiones
   useEffect(() => {
     const fetchDashboardData = async () => {
       try {
@@ -33,10 +34,10 @@ export const Dashboard = () => {
         //Peticion a endpoint
         const response = await apiClient("/sessions");
 
-        setSessions(Array.isArray(response.data) ? response.data : response.data.sessions || []); //Nuestro endpoint devuelve la data como array y si no es array, cogemos la propiedad sessions.
+        setSessions(normalizeSessions(response)); //Nuestro endpoint devuelve la data como array y si no es array, cogemos la propiedad sessions.
 
       } catch (err) {
-        setError(err.response?.data?.message || "Error al cargar las sesiones.");
+        setError(getApiErrorMessage(err, "Error al cargar las sesiones."));
       } finally {
         setIsLoading(false);
       }
@@ -83,10 +84,10 @@ export const Dashboard = () => {
         setIsLoadingStudents(true);
         //Peticion a endpoint
         const response = await apiClient("/students");
-        setStudents(response.data.students || []);
+        setStudents(normalizeStudents(response));
 
       } catch (err) {
-        setErrorStudents(err.response?.data?.message || "Error al cargar los alumnos.");
+        setErrorStudents(getApiErrorMessage(err, "Error al cargar los alumnos."));
       } finally {
         setIsLoadingStudents(false);
       }

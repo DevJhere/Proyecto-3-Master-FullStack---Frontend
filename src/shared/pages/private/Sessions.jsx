@@ -5,6 +5,8 @@ import { FiChevronLeft, FiChevronRight, FiPlus } from "react-icons/fi";
 import { ScheduleSessionModal } from "../../components/session/ScheduleSessionModal";
 import { HOURS, PASTEL_THEMES } from "../../utils/constants";
 import { getMondayOfWeek } from "../../utils/DateHelpers";
+import { normalizeSessions, normalizeStudents } from "../../utils/APIHelpers";
+
 
 export const Sessions = () => {
 
@@ -28,13 +30,10 @@ export const Sessions = () => {
         apiClient.get("/sessions"),
         apiClient.get("/students"),
       ]);
-
-      const allSessions = Array.isArray(sessionRes.data)
-        ? sessionRes.data
-        : sessionRes.data.sessions || [];
-
-      setSessions(allSessions);
-      setStudents(studentRes.data.students || []);
+      
+      //Normalizamos el tipo de dato que nos devuelven las respuestas con la función APIHelpers
+      setSessions(normalizeSessions(sessionRes));
+      setStudents(normalizeStudents(studentRes));
 
     } catch (err) {
       console.error("Error al cargar los datos del calendario:", err);

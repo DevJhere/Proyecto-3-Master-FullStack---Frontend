@@ -5,6 +5,7 @@ import apiClient from "../../config/axios";
 import { IoSearchOutline } from "react-icons/io5";
 import { LuSearchX } from "react-icons/lu";
 import { NewStudentModal } from "../../components/students/NewStudentModal";
+import { getApiErrorMessage, normalizeSessions, normalizeStudents } from "../../utils/APIHelpers";
 
 export const Students = () => {
 
@@ -21,10 +22,10 @@ export const Students = () => {
         setIsLoadingStudents(true);
         //Peticion a endpoint
         const response = await apiClient("/students");
-        setStudents(response.data.students || []);
+        setStudents(normalizeStudents(response));
         
       } catch (err) {
-        setErrorStudents(err.response?.data?.message || "Error al cargar los alumnos.");
+        setErrorStudents(getApiErrorMessage(err, "Error al cargar los alumnos."));
       } finally {
         setIsLoadingStudents(false);
       }
@@ -48,10 +49,10 @@ export const Students = () => {
         //Peticion a endpoint
         const response = await apiClient("/sessions");
         
-        setSessions(Array.isArray(response.data) ? response.data : response.data.sessions || []); //Nuestro endpoint devuelve la data como array y si no es array, cogemos la propiedad sessions.
+        setSessions(normalizeSessions(response)); //Nuestro endpoint devuelve la data como array y si no es array, cogemos la propiedad sessions.
         
       } catch (err) {
-        setErrorSessions(err.response?.data?.message || "Error al cargar las sesiones.");
+        setErrorSessions(getApiErrorMessage(err, "Error al cargar las sesiones."));
       } finally {
         setIsLoadingSessions(false);
       }
