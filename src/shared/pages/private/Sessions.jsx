@@ -3,27 +3,18 @@ import { Link } from "react-router-dom";
 import apiClient from "../../config/axios";
 import { FiChevronLeft, FiChevronRight, FiPlus } from "react-icons/fi";
 import { ScheduleSessionModal } from "../../components/session/ScheduleSessionModal";
-import { COURSES, HOURS, PASTEL_THEMES } from "../../utils/constants";
+import { HOURS, PASTEL_THEMES } from "../../utils/constants";
+import { getMondayOfWeek } from "../../utils/DateHelpers";
 
 export const Sessions = () => {
 
   //Definimos estados locales de sesion y students
-  const [ sessions, setSessions] = useState([]);
-  const [ students, setStudents] = useState([]);
-  const [ isLoading, setIsLoading] = useState(true);
+  const [sessions, setSessions] = useState([]);
+  const [students, setStudents] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  //Fecha inicio de la semana
-  const [ currentWeekStart, setCurrentWeekStart ] = useState( () => {
-
-    //Calcula el lunes de la semana actual
-    const today = new Date();
-    const day = today.getDay(); // 0 para domingo, 1 para lunes...
-    const diff = today.getDate() - day + (day === 0 ? -6 : 1); // Ajusta para que empiece en lunes (1)
-    const monday = new Date(today.setDate(diff));
-    // Establecemos a las 00:00
-    monday.setHours(0, 0, 0, 0);
-    return monday;
-  });
+  //Fecha inicio de la semana empleando la función getMondayOfWeek para tener el lunes de la semana actual
+  const [currentWeekStart, setCurrentWeekStart] = useState(() => getMondayOfWeek());
 
   // Estados del Modal de la nueva sesión
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -39,27 +30,27 @@ export const Sessions = () => {
       ]);
 
       const allSessions = Array.isArray(sessionRes.data)
-      ? sessionRes.data
-      : sessionRes.data.sessions || [];
+        ? sessionRes.data
+        : sessionRes.data.sessions || [];
 
       setSessions(allSessions);
-      setStudents(studentRes.data.students || []);      
-      
+      setStudents(studentRes.data.students || []);
+
     } catch (err) {
       console.error("Error al cargar los datos del calendario:", err);
     } finally {
       setIsLoading(false);
     }
   };
-  
+
   //hook de carga de datos
   useEffect(() => {
     fetchCalendardata();
   }, []);
 
   //2 . Calcular los 5 días laborables de la semana
-  const weekDays = useMemo( () => {
-    return [0,1,2,3,4].map((offset) => {
+  const weekDays = useMemo(() => {
+    return [0, 1, 2, 3, 4].map((offset) => {
       const d = new Date(currentWeekStart);
       d.setDate(currentWeekStart.getDate() + offset);
       return d
@@ -97,12 +88,7 @@ export const Sessions = () => {
   };
 
   const handleCurrentWeek = () => {
-    const today = new Date();
-    const day = today.getDay();
-    const diff = today.getDate() - day + (day === 0 ? -6 : 1);
-    const monday = new Date(today.setDate(diff));
-    monday.setHours(0, 0, 0, 0);
-    setCurrentWeekStart(monday);
+    setCurrentWeekStart(getMondayOfWeek());
   };
 
   // Comparador de días seguro sin desfase horario
@@ -114,7 +100,7 @@ export const Sessions = () => {
     );
   };
 
-   // Asigna un tema pastel consistente a cada alumno (para que Sofía siempre sea azul, Lucas melocotón, etc.)
+  // Asigna un tema pastel consistente a cada alumno (para que Sofía siempre sea azul, Lucas melocotón, etc.)
   const getStudentTheme = (studentId) => {
     const sId = typeof studentId === "object" ? studentId?._id : studentId;
     const index = students.findIndex((s) => s._id === sId);
@@ -132,7 +118,7 @@ export const Sessions = () => {
 
 
   return (
-     <div className="flex-1 overflow-y-auto">
+    <div className="flex-1 overflow-y-auto">
       <div className="max-w-7xl mx-auto px-6 py-6 space-y-6">
         {/* CABECERA: Título, Rango de fechas y Navegación */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -194,9 +180,8 @@ export const Sessions = () => {
                     {dayShort}
                   </p>
                   <p
-                    className={`text-xl font-bold mt-0.5 ${
-                      isToday ? "text-[#529471]" : "text-slate-800"
-                    }`}
+                    className={`text-xl font-bold mt-0.5 ${isToday ? "text-[#529471]" : "text-slate-800"
+                      }`}
                   >
                     {dayNum}
                   </p>
@@ -233,11 +218,10 @@ export const Sessions = () => {
                             handleSlotClick(dayDate, hour);
                           }
                         }}
-                        className={`p-1.5 sm:p-2 border-r border-[#EBE7DF]/80 last:border-r-0 transition-colors group relative ${
-                          cellSessions.length === 0
+                        className={`p-1.5 sm:p-2 border-r border-[#EBE7DF]/80 last:border-r-0 transition-colors group relative ${cellSessions.length === 0
                             ? "hover:bg-[#FAF8F5]/70 cursor-pointer"
                             : ""
-                        }`}
+                          }`}
                       >
                         {/* Si la celda está vacía, mostramos en hover un sutil botón para agendar */}
                         {cellSessions.length === 0 && (
