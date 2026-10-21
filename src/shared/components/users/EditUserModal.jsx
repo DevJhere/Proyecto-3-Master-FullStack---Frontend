@@ -1,9 +1,9 @@
 import { useState, useEffect } from "react";
-import { IoClose } from "react-icons/io5";
 import { FiUser, FiBriefcase, FiShield, FiCheck } from "react-icons/fi";
 import apiClient from "../../config/axios";
 import { SPECIALIZATIONS } from "../../utils/constants";
 import { getAvatarUrl } from "../../utils/HelperAvatar";
+import { Modal } from "../ui/Modal";
 
 export const EditUserModal = ({ isOpen, onClose, userToEdit, onUserUpdated }) => {
 
@@ -79,38 +79,14 @@ export const EditUserModal = ({ isOpen, onClose, userToEdit, onUserUpdated }) =>
   };
 
   return (
-    <div
-      className="fixed inset-0 z-50 bg-black/40 backdrop-blur-xs flex items-center justify-center p-4"
-      onClick={handleClose}
-    >
-      <div
-        className="bg-white rounded-3xl max-w-lg w-full p-6 shadow-xl border border-[#EBE7DF] overflow-hidden animate-in fade-in zoom-in-95 duration-200"
-        onClick={(e) => e.stopPropagation()}
+    
+      // Usamos el modal Reutilizable 
+      <Modal 
+      isOpen={isOpen}
+      onClose={handleClose}
+      title={"Editar Usuario"}
+      subtitle={userToEdit?.email}
       >
-        {/* Cabecera del Modal */}
-        <div className="flex items-center justify-between pb-4 border-b border-[#F5F2EB]">
-          <div className="flex items-center gap-3">
-            <img
-              src={getAvatarUrl(userToEdit.avatar)}
-              alt={userToEdit.name}
-              className="w-10 h-10 rounded-xl object-cover ring-1 ring-slate-200"
-            />
-            <div>
-              <h2 className="text-base font-bold text-slate-800">Editar Usuario</h2>
-              <p className="text-xs text-ink-faint">{userToEdit.email}</p>
-            </div>
-          </div>
-
-          <button
-            type="button"
-            onClick={handleClose}
-            disabled={isSubmitting}
-            className="text-slate-400 hover:text-slate-600 p-1 rounded-lg transition-colors cursor-pointer"
-          >
-            <IoClose size={20} />
-          </button>
-        </div>
-
         {/* Formulario */}
         <form onSubmit={handleSubmit} className="mt-5 space-y-4">
           {errorMsg && (
@@ -227,7 +203,6 @@ export const EditUserModal = ({ isOpen, onClose, userToEdit, onUserUpdated }) =>
             </button>
           </div>
         </form>
-      </div>
-    </div>
+      </Modal>
   );
 };

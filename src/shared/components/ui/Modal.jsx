@@ -39,7 +39,7 @@ export const Modal = ({ isOpen, onClose, title, subtitle, maxWidth = "max-w-lg",
             onClick={onClose}>
 
             {/* Contenedor del Modal */}
-            <div className={`bg-white rounded-3xl ${maxWidth} w-full p-6 shadow-xl border border-[#EBE7DF] overflow-hidden animate-in fade-in zoom-in-95 duration-200`}
+            <div className={`bg-white rounded-3xl ${maxWidth} w-full p-6 shadow-xl border border-[#EBE7DF] overflow-hidden animate-in fade-in zoom-in-95 duration-200 max-h-[90vh] overflow-y-auto`}
                 onClick={(e) => e.stopPropagation()} > {/* Evita que al hacer click dentro del modal, lo cierre */}
 
                 {/* Cabecera del Modal - Titulo y subtitulo*/}
