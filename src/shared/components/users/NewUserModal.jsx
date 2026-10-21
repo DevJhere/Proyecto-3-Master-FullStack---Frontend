@@ -1,8 +1,8 @@
 import { useState } from "react";
-import { IoClose } from "react-icons/io5";
 import { FiUser, FiMail, FiLock, FiBriefcase, FiShield, FiEye, FiEyeOff, FiCheck } from "react-icons/fi";
 import apiClient from "../../config/axios";
 import { SPECIALIZATIONS } from "../../utils/constants";
+import { Modal } from "../ui/Modal";
 
 export const NewUserModal = ({ isOpen, onClose, onUserCreated }) => {
 
@@ -22,9 +22,6 @@ export const NewUserModal = ({ isOpen, onClose, onUserCreated }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
   
-  //Si el modal no esta abierto, no renderizamos nada
-  if (!isOpen) return null;
-
   //Funcion para cerrar el modal
   const handleClose = () => {
     if (isSubmitting) return;
@@ -103,33 +100,15 @@ export const NewUserModal = ({ isOpen, onClose, onUserCreated }) => {
   };
 
   return (
-    <div
-      className="fixed inset-0 z-50 bg-black/40 backdrop-blur-xs flex items-center justify-center p-4"
-      onClick={handleClose}
+   
+    // Agregamos el Componente Modal reutilizable
+    <Modal 
+    isOpen={isOpen}
+    onClose={handleClose}
+    title={"Nuevo Miembro del Equipo"}
+    subtitle={"Crea una cuenta para un nuevo profesional o administrador"}
     >
-      <div
-        className="bg-white rounded-3xl max-w-lg w-full p-6 shadow-xl border border-[#EBE7DF] overflow-hidden animate-in fade-in zoom-in-95 duration-200"
-        onClick={(e) => e.stopPropagation()}
-      >
-        {/* Cabecera */}
-        <div className="flex items-center justify-between pb-4 border-b border-[#F5F2EB]">
-          <div>
-            <h2 className="text-base font-bold text-slate-800">Nuevo Miembro del Equipo</h2>
-            <p className="text-xs text-ink-faint mt-0.5">
-              Crea una cuenta para un nuevo profesional o administrador
-            </p>
-          </div>
-          <button
-            type="button"
-            onClick={handleClose}
-            disabled={isSubmitting}
-            className="text-slate-400 hover:text-slate-600 p-1 rounded-lg transition-colors cursor-pointer"
-          >
-            <IoClose size={20} />
-          </button>
-        </div>
-
-        {/* Formulario */}
+      {/* Formulario */}
         <form onSubmit={handleSubmit} className="mt-5 space-y-3.5">
           {errorMsg && (
             <div className="p-3 bg-red-50 border border-red-200 rounded-2xl text-xs text-red-700">
@@ -282,7 +261,6 @@ export const NewUserModal = ({ isOpen, onClose, onUserCreated }) => {
             </button>
           </div>
         </form>
-      </div>
-    </div>
+    </Modal>
   );
 };
