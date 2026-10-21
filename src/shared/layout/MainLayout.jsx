@@ -8,6 +8,7 @@ import { GrUserSettings } from "react-icons/gr";
 import { NavLink, Outlet } from "react-router-dom";
 import { IoExitOutline } from "react-icons/io5";
 import logo from "../../assets/images/Raices y Alas Logo.png";
+import { getAvatarUrl } from "../utils/HelperAvatar";
 
 export const MainLayout = () => {
     // Traemos estado global de auth
@@ -68,10 +69,12 @@ export const MainLayout = () => {
                 {/* USUARIO Y BOTÓN DE LOGOUT (FOOTER SIDEBAR) */}
                 <div className="pt-6 border-t border-[#c8c6c1] space-y-4">
                     <div className="flex items-center gap-3 px-2">
-                        {/* Avatar - Tono pastel */}
-                        <div className="w-10 h-10 rounded-full bg-[#E8E3F5] text-[#6B5B95] flex items-center justify-center font-semibold text-sm shrink-0">
-                            {user?.name ? user.name.slice(0, 2).toUpperCase() : "TP"}
-                        </div>
+                        {/* Avatar con imagen de Cloudinary o fallback */}
+                        <img
+                            src={getAvatarUrl(user?.avatar)}
+                            alt={user?.name || "Usuario"}
+                            className="w-10 h-10 rounded-full object-cover ring-1 ring-slate-200 shrink-0 bg-slate-100"
+                        />
 
                         <div className="overflow-hidden">
                             <p className="text-sm font-bold text-slate-800  truncate leading-snug">

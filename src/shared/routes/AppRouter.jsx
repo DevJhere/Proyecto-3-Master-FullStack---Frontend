@@ -15,8 +15,8 @@ import { Dashboard } from "../pages/private/Dashboard";
 import { Students } from "../pages/private/Students";
 import { StudentDetail } from "../pages/private/StudentDetail";
 import { Sessions } from "../pages/private/Sessions";
-import {Profile} from "../pages/private/Profile";
-  
+import { Profile } from "../pages/private/Profile";
+import { Users } from "../pages/private/Users";
 
 import { Error404 } from "../pages/public/Error404";
 
@@ -47,8 +47,15 @@ export const AppRouter = () => {
 
                         <Route path="/profile" element={<Profile />} />
 
-                        {/* RUTA PROTEGIDA PARA USUARIOS AUTENTICADOS - PERMITE ACCESO A ADMINISTRADORES Y PEDAGOGOS */}
-                        <Route path="/users" element={<ProtectedRoute allowedRoles={['admin','pedagogo']}/>}/>
+                        {/* RUTA PROTEGIDA PARA ADMINISTRADORES - GESTIÓN DE EQUIPO */}
+                        <Route 
+                            path="/users" 
+                            element={
+                                <ProtectedRoute allowedRoles={['admin']}>
+                                    <Users />
+                                </ProtectedRoute>
+                            }
+                        />
 
                     </Route>
                 </Route>
