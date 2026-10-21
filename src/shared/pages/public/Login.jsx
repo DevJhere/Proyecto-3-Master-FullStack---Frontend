@@ -85,7 +85,7 @@ export const Login = () => {
         <h1 className="text-xl font-serif text-slate-800 tracking-wide">
           RAÍCES Y ALAS
         </h1>
-        <p className="text-[11px] font-semibold tracking-widest text-slate-400 uppercase mt-0.5">
+        <p className="text-[11px] font-semibold tracking-widest text-ink-faint uppercase mt-0.5">
           Gestión PT
         </p>
       </div>
@@ -104,7 +104,7 @@ export const Login = () => {
 
             <NavLink
               to="/register"
-              className="text-slate-400 hover:text-slate-600 py-4"
+              className="text-ink-faint hover:text-slate-600 py-4"
               >
               Crear Cuenta
             </NavLink>
@@ -121,7 +121,7 @@ export const Login = () => {
             )}
             
             <div className="relative w-full">
-              <label htmlFor="email" className="block text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1.5">Correo Electrónico</label>
+              <label htmlFor="email" className="block text-[11px] font-bold uppercase tracking-wider text-ink-muted mb-1.5">Correo Electrónico</label>
               <input 
                 type="email" 
                 name="email"
@@ -131,11 +131,11 @@ export const Login = () => {
                 placeholder="Ingresa tu correo electrónico"
                 className="w-full bg-[#F5F2EB] border border-transparent focus:border-[#529471] focus:bg-white rounded-2xl pl-10 pr-4 py-3 text-sm text-slate-700 outline-none transition-all"
               />
-              <FiMail className="absolute left-3.5 top-10 text-slate-400" />
+              <FiMail className="absolute left-3.5 top-10 text-ink-faint" />
             </div>
 
             <div className="relative w-full">
-              <label htmlFor="password" className="block text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1.5">
+              <label htmlFor="password" className="block text-[11px] font-bold uppercase tracking-wider text-ink-muted mb-1.5">
                 Contraseña
               </label>
               <input 
@@ -147,11 +147,11 @@ export const Login = () => {
                 placeholder="Ingresa tu contraseña"
                 className="w-full bg-[#F5F2EB] border border-transparent focus:border-[#529471] focus:bg-white rounded-2xl pl-10 pr-10 py-3 text-sm text-slate-700 outline-none transition-all"
               />
-              <FiLock className="absolute left-3.5 top-10 text-slate-400"/>
+              <FiLock className="absolute left-3.5 top-10 text-ink-faint"/>
               <button 
                 type="button"
                 onClick={toggleShowPassword}
-                className="absolute right-3.5 top-10 text-slate-400 hover:text-slate-600 focus:outline-none"
+                className="absolute right-3.5 top-10 text-ink-faint hover:text-slate-600 focus:outline-none"
               >
                 {showPassword ? <FiEyeOff /> : <FiEye />}
               </button>

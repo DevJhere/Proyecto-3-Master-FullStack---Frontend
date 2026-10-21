@@ -112,7 +112,7 @@ export const Register = () => {
           <h1 className="text-xl font-serif text-slate-800 tracking-wide">
             RAÍCES Y ALAS
           </h1>
-          <p className="text-[11px] font-semibold tracking-widest text-slate-400 uppercase mt-0.5">
+          <p className="text-[11px] font-semibold tracking-widest text-ink-faint uppercase mt-0.5">
             Gestión PT
           </p>
       </div>
@@ -124,7 +124,7 @@ export const Register = () => {
         <div className="grid grid-cols-2 text-center border-b border-[#EBE7DF] text-sm font-medium">
             <NavLink 
               to="/login"
-              className="text-slate-400 hover:text-slate-600 py-4"
+              className="text-ink-faint hover:text-slate-600 py-4"
             >
               Iniciar sesión
             </NavLink>
@@ -156,7 +156,7 @@ export const Register = () => {
           {/* === CAMPOS DEL FORMULARIO === */}
           {/* CAMPO: NOMBRE COMPLETO*/}
           <div className="relative w-full">
-            <label htmlFor="name" className="block text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1.5">Nombre Completo</label>
+            <label htmlFor="name" className="block text-[11px] font-bold uppercase tracking-wider text-ink-muted mb-1.5">Nombre Completo</label>
             <input 
             type="text"
             name="name"
@@ -165,12 +165,12 @@ export const Register = () => {
             className="w-full bg-[#F5F2EB] border border-transparent focus:border-[#529471] focus:bg-white rounded-2xl pl-10 pr-4 py-3 text-sm text-slate-700 outline-none transition-all"
             placeholder="ej: Lucía Rodríguez"
             />
-            <FiUser className="absolute left-3.5 top-10 text-slate-400"/>
+            <FiUser className="absolute left-3.5 top-10 text-ink-faint"/>
           </div>
 
           {/* CAMPO ESPECIALIZACIÓN */}
           <div className="relative w-full">
-            <label htmlFor="specialization" className="block text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1.5">Especialidad</label>
+            <label htmlFor="specialization" className="block text-[11px] font-bold uppercase tracking-wider text-ink-muted mb-1.5">Especialidad</label>
             <select
             name="specialization"
             value={formData.specialization}
@@ -184,12 +184,12 @@ export const Register = () => {
                 </option>
               ))}
             </select>
-            <FiBriefcase className="absolute left-3.5 top-10 text-slate-400"/> 
+            <FiBriefcase className="absolute left-3.5 top-10 text-ink-faint"/> 
           </div>
 
           {/* CAMPO EMAIL */}
           <div className="relative w-full">
-            <label htmlFor="email" className="block text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1.5">Correo Electrónico</label>
+            <label htmlFor="email" className="block text-[11px] font-bold uppercase tracking-wider text-ink-muted mb-1.5">Correo Electrónico</label>
             <input 
             type="email"
             name="email"
@@ -198,12 +198,12 @@ export const Register = () => {
             className="w-full bg-[#F5F2EB] border border-transparent focus:border-[#529471] focus:bg-white rounded-2xl pl-10 pr-4 py-3 text-sm text-slate-700 outline-none transition-all"
             placeholder="ejemplo@correo.com"
             />
-            <FiMail className="absolute left-3.5 top-10 text-slate-400"/>
+            <FiMail className="absolute left-3.5 top-10 text-ink-faint"/>
           </div>
 
           {/* CAMPO PASSWORD */}
           <div className="relative w-full">
-            <label htmlFor="password" className="block text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1.5">Contraseña</label>
+            <label htmlFor="password" className="block text-[11px] font-bold uppercase tracking-wider text-ink-muted mb-1.5">Contraseña</label>
             <input 
             type={showPassword ? "text" : "password"}
             name="password"
@@ -213,11 +213,11 @@ export const Register = () => {
             placeholder="Mínimo 8 caracteres"
             />
             {/* Icono del ojo para mostrar/ocultar contraseña */}
-            <FiLock className="absolute left-3.5 top-10 text-slate-400"/>
+            <FiLock className="absolute left-3.5 top-10 text-ink-faint"/>
             <button 
             type="button"
             onClick={toggleShowPassword} 
-            className="absolute right-3.5 top-10 text-slate-400 hover:text-slate-600 focus:outline-none">
+            className="absolute right-3.5 top-10 text-ink-faint hover:text-slate-600 focus:outline-none">
               {showPassword ? <FiEyeOff /> : <FiEye />}
             </button>
           </div>
