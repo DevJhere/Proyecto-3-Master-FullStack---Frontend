@@ -1,164 +1,157 @@
 import { useState } from "react";
-import { IoClose } from "react-icons/io5";
 import { COURSES, DIAGNOSIS, TUTOR_RELATIONSHIP } from "../../utils/constants";
 import apiClient from "../../config/axios";
 import { MdAddPhotoAlternate } from "react-icons/md";
 import { IoMdArrowBack } from "react-icons/io";
+import { Modal } from "../ui/Modal";
+import { getApiErrorMessage } from "../../utils/APIHelpers";
 
-export const NewStudentModal = ({isOpen, onClose, onStudentCreated}) => {
- 
-  /* Control de paso 1 y 2 */
-  const [ step, setStep ] = useState(1); //Por defecto en 1
-  const [ isSubmitting, setIsSubmitting ] = useState(false);
-  const [error, setError] = useState("");
-  
-  /* Estados del formulario*/
-  const [ formData, setFormData ] = useState({
-    name:"",
-    age: "",
-    course: "",
-    diagnosis: "",
-    avatar: null, // Para la subida de imagen
-    nameTutor: "",
-    tutorRelationship: "Madre",
-    phoneNumberTutor: "",
-    emailTutor: "",
-  })
+export const NewStudentModal = ({ isOpen, onClose, onStudentCreated }) => {
 
-  // Estado de preview de imagen Avatar
-  const [avatarPreview, setAvatarPreview] = useState(null);
+    /* Control de paso 1 y 2 */
+    const [step, setStep] = useState(1); //Por defecto en 1
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [error, setError] = useState("");
 
-  if(!isOpen) return null; //Si el modal no esta abierto, no renderizamos nada
- 
-  //Funcion para controlar los inputs del formulario
-  const handleChange = (e) => {
-    // Nos traemos el nombre y el valor del input
-    const { name, value } = e.target;
+    /* Estados del formulario*/
+    const [formData, setFormData] = useState({
+        name: "",
+        age: "",
+        course: "",
+        diagnosis: "",
+        avatar: null, // Para la subida de imagen
+        nameTutor: "",
+        tutorRelationship: "Madre",
+        phoneNumberTutor: "",
+        emailTutor: "",
+    })
 
-    //Actualizamos el estado del formulario
-    setFormData((prev) => ({...prev, [name]: value}))    
-  };
+    // Estado de preview de imagen Avatar
+    const [avatarPreview, setAvatarPreview] = useState(null);
 
-  // Función para pasar al paso 2
-  const handleNext = (e) => {
-    // Evitamos que el furmulario se enví de forma natica
-    e.preventDefault();
-    //Validmos los datos del paso 1
-    if(!formData.name.trim() || !formData.course || !formData.age || !formData.diagnosis){
-        setError("Por favor, debe rellenar los campos obligatorios.")
-        return;
-    }
+    //Funcion para controlar los inputs del formulario
+    const handleChange = (e) => {
+        // Nos traemos el nombre y el valor del input
+        const { name, value } = e.target;
 
-    setError("");
-    setStep(2); //Finalizamos en el paso 2
-  };
+        //Actualizamos el estado del formulario
+        setFormData((prev) => ({ ...prev, [name]: value }))
+    };
 
+    // Función para pasar al paso 2
+    const handleNext = (e) => {
+        // Evitamos que el furmulario se enví de forma natica
+        e.preventDefault();
+        //Validmos los datos del paso 1
+        if (!formData.name.trim() || !formData.course || !formData.age || !formData.diagnosis) {
+            setError("Por favor, debe rellenar los campos obligatorios.")
+            return;
+        }
 
-  //Función para manejar el envió de datos del formulario
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    
-    //Validamos los datos del paso 2
-    if(!formData.nameTutor.trim() || !formData.emailTutor.trim() || !formData.phoneNumberTutor.trim() || !formData.tutorRelationship){
-        setError("Por favor, debe rellenar los campos obligatorios.")
-        return;
-    }
-
-    try {
-
-        setIsSubmitting(true);
         setError("");
+        setStep(2); //Finalizamos en el paso 2
+    };
 
-        //Usamos FormData para permitir subida foto de perfil
-        const dataToSend = new FormData();
 
-        //Recorremos todas las claves del objeto formData
-        Object.keys(formData).forEach((key) => {
-            //Si el valor no es nulo ni vacio, lo agregamos a FormData
-            if (formData[key] !== null && formData[key] !== "") {
-                dataToSend.append(key, formData[key]);
-            }
-        });
+    //Función para manejar el envió de datos del formulario
+    const handleSubmit = async (e) => {
+        e.preventDefault();
 
-        // Si subimos imagen usaremos FormData, si no, enviamos JSON
-        // POST a /students
-        await apiClient.post("/students", dataToSend, {
-            //Subida de archivos
-            headers: {
-                "Content-Type": "multipart/form-data",
-            },  
-        });
+        //Validamos los datos del paso 2
+        if (!formData.nameTutor.trim() || !formData.emailTutor.trim() || !formData.phoneNumberTutor.trim() || !formData.tutorRelationship) {
+            setError("Por favor, debe rellenar los campos obligatorios.")
+            return;
+        }
 
-        //Avisamos a Students.jsx para refrescar la lista de Alumnos
-        onStudentCreated();
+        try {
 
-        //Reseteamos el formulario del Modal
+            setIsSubmitting(true);
+            setError("");
+
+            //Usamos FormData para permitir subida foto de perfil
+            const dataToSend = new FormData();
+
+            //Recorremos todas las claves del objeto formData
+            Object.keys(formData).forEach((key) => {
+                //Si el valor no es nulo ni vacio, lo agregamos a FormData
+                if (formData[key] !== null && formData[key] !== "") {
+                    dataToSend.append(key, formData[key]);
+                }
+            });
+
+            // Si subimos imagen usaremos FormData, si no, enviamos JSON
+            // POST a /students
+            await apiClient.post("/students", dataToSend, {
+                //Subida de archivos
+                headers: {
+                    "Content-Type": "multipart/form-data",
+                },
+            });
+
+            //Avisamos a Students.jsx para refrescar la lista de Alumnos
+            onStudentCreated()
+            handleClose(); //Cerramos el modal    
+
+        } catch (err) {
+            setError(getApiErrorMessage(err, "Error al crear el alumno"));
+
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
+
+    //Función para capturar el archivo
+    const handleAvatarChange = (e) => {
+
+        //Validamos el tipo de imagen
+        const file = e.target.files[0];
+        if (file) {
+            setFormData((prev) => ({ ...prev, avatar: file }));
+            setAvatarPreview(URL.createObjectURL(file));
+        }
+    };
+
+    // Función para seleccionar los tags de diagnóstico
+    const handleTagClick = (type, value) => {
+        setFormData((prev) => ({ ...prev, [type]: value }));
+    };
+
+    // Función handleClose para resetear y cerrar el model de forma limpia
+    const handleClose = () => {
+        onClose(); //Cerrar el modal llamando a la función padre
+        //Limpieza de estado interno del modal
         setStep(1);
-        setFormData( {
-            name:"",
+        setFormData({
+            name: "",
             age: "",
             course: "",
             diagnosis: "",
-            avatar: null, // Para la subida de imagen
+            avatar: null,
             nameTutor: "",
             tutorRelationship: "Madre",
             phoneNumberTutor: "",
             emailTutor: "",
         });
-        setAvatarPreview(null); //Limpiamos el preview
-        onClose(); //Cerramos el modal    
-
-    } catch (err) {
-        const errorDetails = err.response?.data?.error || err.response?.data?.message || "Error al crear el alumno.";
-        setError(errorDetails);
-        
-    }finally {
-        setIsSubmitting(false);
+        setAvatarPreview(null); //Limpiamos la preview de la foto
+        setError(""); //Limpiamos cualquier error
+        setIsSubmitting(false); //Reseteamos el estado de envío
     }
-  };
 
- //Función para capturar el archivo
- const handleAvatarChange = (e) => {
-    
-    //Validamos el tipo de imagen
-    const file = e.target.files[0];
-    if (file) {
-        setFormData( (prev) => ( {...prev, avatar: file}));
-        setAvatarPreview(URL.createObjectURL(file));
-    }
- };
-
- // Función para seleccionar los tags de diagnóstico
- const handleTagClick = (type, value) => {
-    setFormData( (prev) => ({ ...prev, [type]: value}));
- };
-
-  return (
-    <div className="fixed inset-0 bg-ink/30 backdrop-blur-sm flex items-center justify-center z-50 p-4" >
-        <div className="bg-white w-full max-w-lg rounded-3xl shadow-xl overflow-hidden flex flex-col max-h-[90vh]">
-            {/* Cabecera del modal con barra de progreso */}
-            <div className="p-6 pb-4 border-b border-[#EBE7DF] flex items-center justify-between">
-                <div>
-                    <span className="text-xs font-semibold text-[#529471] uppercase tracking-wider">
-                        Paso {step} de 2
-                    </span>
-                    <h2 className="text-xl font-bold text-slate-800">{step === 1 ? "Datos del Alumno" : "Datos del tutor legal"}</h2>
-                </div>
-
-                {/* Boton cerrar */}
-                <button onClick={onClose}
-                className="p-2 text-slate-400 hover:text-slate-600 rounded-full hover:bg-slate-100 transition-colors" >
-                  <IoClose size={18} />                  
-                </button>
-            </div>
-
+    return (
+        <Modal
+            isOpen={isOpen}
+            onClose={handleClose}
+            title={step === 1 ? "Datos del Alumno" : "Datos del tutor legal"}
+            subtitle={`Paso ${step} de 2`}
+            maxWidth="max-w-lg"
+        >
             {/* Formulario */}
-            <div className="p-6 overflow-y-auto flex-1">
+            <form onSubmit={handleSubmit} className="mt-4 space-y-4">
                 {/* Mostrar error */}
                 {error && (
-                  <div className="w-full bg-red-50 border border-red-200 rounded-2xl p-3 text-center text-red-700 text-xs mb-4">
-                    {error}
-                  </div>
+                    <div className="w-full bg-red-50 border border-red-200 rounded-2xl p-3 text-center text-red-700 text-xs mb-4">
+                        {error}
+                    </div>
                 )}
 
                 {/* Formulario Paso 1 */}
@@ -177,15 +170,15 @@ export const NewStudentModal = ({isOpen, onClose, onStudentCreated}) => {
                                 )}
                             </div>
 
-                           <div>
+                            <div>
                                 <p className="text-xs font-600 text-ink mb-1">Foto del alumno</p>
                                 <label className="mt-1.5 text-xs text-sage font-600 hover:underline cursor-pointer">
                                     Seleccionar imagen
-                                    <input 
-                                    type="file"
-                                    accept="image/*"
-                                    onChange={handleAvatarChange}
-                                    className="hidden"
+                                    <input
+                                        type="file"
+                                        accept="image/*"
+                                        onChange={handleAvatarChange}
+                                        className="hidden"
                                     />
                                 </label>
                                 <p className="text-[11px] text-slate-400 mt-1">PNG o JPG (máx. 5MB)</p>
@@ -196,27 +189,27 @@ export const NewStudentModal = ({isOpen, onClose, onStudentCreated}) => {
                         <div>
                             <label className="block text-xs font-700 uppercase tracking-wide text-ink-muted mb-1.5">Nombre Completo *</label>
                             <input
-                            type="text"
-                            name="name"
-                            value={formData.name}
-                            onChange={handleChange}
-                            placeholder="Ej: Lucía Navarro Martinéz"
-                            className="w-full px-4 py-3 bg-bg border border-border rounded-xl text-sm text-ink placeholder:text-ink-faint focus:outline-none focus:border-sage transition-colors" />
+                                type="text"
+                                name="name"
+                                value={formData.name}
+                                onChange={handleChange}
+                                placeholder="Ej: Lucía Navarro Martinéz"
+                                className="w-full px-4 py-3 bg-bg border border-border rounded-xl text-sm text-ink placeholder:text-ink-faint focus:outline-none focus:border-sage transition-colors" />
                         </div>
 
                         {/* Edad y Curos en dos Columnas */}
                         <div className="grid grid-cols-2 gap-4">
                             <div>
                                 <label className="block text-xs font-700 uppercase tracking-wide text-ink-muted mb-1.5">Edad *</label>
-                                <input 
-                                type="number"
-                                name="age"
-                                placeholder="Ej: 9"
-                                min={3}
-                                max={18}
-                                value={formData.age}
-                                onChange={handleChange}
-                                className="w-full px-4 py-3 bg-bg border border-border rounded-xl text-sm text-ink placeholder:text-ink-faint focus:outline-none focus:border-sage transition-colors"
+                                <input
+                                    type="number"
+                                    name="age"
+                                    placeholder="Ej: 9"
+                                    min={3}
+                                    max={18}
+                                    value={formData.age}
+                                    onChange={handleChange}
+                                    className="w-full px-4 py-3 bg-bg border border-border rounded-xl text-sm text-ink placeholder:text-ink-faint focus:outline-none focus:border-sage transition-colors"
 
                                 />
                             </div>
@@ -224,21 +217,21 @@ export const NewStudentModal = ({isOpen, onClose, onStudentCreated}) => {
                             <div>
                                 <label className="block text-xs font-700 uppercase tracking-wide text-ink-muted mb-1.5">Curso *</label>
                                 <select
-                                name="course"
-                                value={formData.course}
-                                onChange={handleChange}
-                                className="w-full px-4 py-3 bg-bg border border-border rounded-xl text-sm text-ink placeholder:text-ink-faint focus:outline-none focus:border-sage transition-colors"
+                                    name="course"
+                                    value={formData.course}
+                                    onChange={handleChange}
+                                    className="w-full px-4 py-3 bg-bg border border-border rounded-xl text-sm text-ink placeholder:text-ink-faint focus:outline-none focus:border-sage transition-colors"
                                 >
-                                <option value="">Seleccionar</option>
-                                {/*  Mapeamos los cursos que provienen de la base de datos */}
-                                {Object.entries(COURSES).map( ([key, value]) => (
+                                    <option value="">Seleccionar</option>
+                                    {/*  Mapeamos los cursos que provienen de la base de datos */}
+                                    {Object.entries(COURSES).map(([key, value]) => (
                                         <option
-                                        key={key}
-                                        value={value}
+                                            key={key}
+                                            value={value}
                                         >
-                                        {value}   
+                                            {value}
                                         </option>
-                                ))}
+                                    ))}
                                 </select>
                             </div>
                         </div>
@@ -248,18 +241,18 @@ export const NewStudentModal = ({isOpen, onClose, onStudentCreated}) => {
                             <label className="block text-xs font-700 uppercase tracking-wide text-ink-muted mb-1.5">Área de intervención principal</label>
                             <div className="grid grid-cols-2 gap-2 mt-2">
                                 <div className="flex flex-wrap gap-2 col-span-2">
-                                    {Object.entries(DIAGNOSIS).map( ([key, value]) => (
+                                    {Object.entries(DIAGNOSIS).map(([key, value]) => (
                                         <button
-                                        key={key}
-                                        type="button"
-                                        onClick={ () => handleTagClick('diagnosis', value)}
-                                        className={`px-3 py-1.5 rounded-full text-xs font-600 border transition-all
+                                            key={key}
+                                            type="button"
+                                            onClick={() => handleTagClick('diagnosis', value)}
+                                            className={`px-3 py-1.5 rounded-full text-xs font-600 border transition-all
                                         ${formData.diagnosis === value
-                                            ? "bg-sage text-white border-sage"
-                                            : "bg-white text-ink-muted border-border hover:border-sage"
-                                        }`}
+                                                    ? "bg-sage text-white border-sage"
+                                                    : "bg-white text-ink-muted border-border hover:border-sage"
+                                                }`}
                                         >
-                                        {value}
+                                            {value}
                                         </button>
 
                                     ))}
@@ -268,19 +261,19 @@ export const NewStudentModal = ({isOpen, onClose, onStudentCreated}) => {
 
                         </div>
                     </div>
-                ): (
+                ) : (
                     // Campos del paso 2
                     <div className="space-y-4">
                         {/* Nombre del tutor legal */}
                         <div>
                             <label className="block text-xs font-700 uppercase tracking-wide text-ink-muted mb-1.5">Nombre del tutor/a legal *</label>
                             <input
-                            type="text"
-                            name="nameTutor"
-                            value={formData.nameTutor}
-                            onChange={handleChange}
-                            placeholder="Ej: Carmen Gómez Santos"
-                            className="w-full px-4 py-3 bg-bg border border-border rounded-xl text-sm text-ink placeholder:text-ink-faint focus:outline-none focus:border-sage transition-colors"
+                                type="text"
+                                name="nameTutor"
+                                value={formData.nameTutor}
+                                onChange={handleChange}
+                                placeholder="Ej: Carmen Gómez Santos"
+                                className="w-full px-4 py-3 bg-bg border border-border rounded-xl text-sm text-ink placeholder:text-ink-faint focus:outline-none focus:border-sage transition-colors"
                             />
                         </div>
 
@@ -288,12 +281,12 @@ export const NewStudentModal = ({isOpen, onClose, onStudentCreated}) => {
                             {/* Relación o parentesco */}
                             <label className="block text-xs font-700 uppercase tracking-wide text-ink-muted mb-1.5" >Parentesco *</label>
                             <select
-                            name="tutorRelationship"
-                            value={formData.tutorRelationship}
-                            onChange={handleChange}
-                            className="w-full px-4 py-3 bg-bg border border-border rounded-xl text-sm text-ink placeholder:text-ink-faint focus:outline-none focus:border-sage transition-colors"
+                                name="tutorRelationship"
+                                value={formData.tutorRelationship}
+                                onChange={handleChange}
+                                className="w-full px-4 py-3 bg-bg border border-border rounded-xl text-sm text-ink placeholder:text-ink-faint focus:outline-none focus:border-sage transition-colors"
                             >
-                                {Object.entries(TUTOR_RELATIONSHIP).map(([key, value]) =>(
+                                {Object.entries(TUTOR_RELATIONSHIP).map(([key, value]) => (
                                     <option key={key} value={value}>
                                         {value}
                                     </option>
@@ -305,74 +298,78 @@ export const NewStudentModal = ({isOpen, onClose, onStudentCreated}) => {
                             {/* Telefono y Email en 2 Col */}
                             <div>
                                 <label className="block text-xs font-700 uppercase tracking-wide text-ink-muted mb-1.5">Teléfono *</label>
-                                <input 
-                                type="tel"
-                                name="phoneNumberTutor"
-                                value={formData.phoneNumberTutor}
-                                onChange={handleChange}
-                                placeholder="6XX XXX XXX"
-                                className="w-full px-4 py-3 bg-bg border border-border rounded-xl text-sm text-ink placeholder:text-ink-faint focus:outline-none focus:border-sage transition-colors"
+                                <input
+                                    type="tel"
+                                    name="phoneNumberTutor"
+                                    value={formData.phoneNumberTutor}
+                                    onChange={handleChange}
+                                    placeholder="6XX XXX XXX"
+                                    className="w-full px-4 py-3 bg-bg border border-border rounded-xl text-sm text-ink placeholder:text-ink-faint focus:outline-none focus:border-sage transition-colors"
                                 />
                             </div>
                             {/* Email Tutor */}
                             <div>
                                 <label className="block text-xs font-700 uppercase tracking-wide text-ink-muted mb-1.5">Correo de Contacto *</label>
                                 <input
-                                type="email"
-                                name="emailTutor"
-                                value={formData.emailTutor}
-                                onChange={handleChange}
-                                placeholder="tutor@email.com"
-                                className="w-full px-4 py-3 bg-bg border border-border rounded-xl text-sm text-ink placeholder:text-ink-faint focus:outline-none focus:border-sage transition-colors"
+                                    type="email"
+                                    name="emailTutor"
+                                    value={formData.emailTutor}
+                                    onChange={handleChange}
+                                    placeholder="tutor@email.com"
+                                    className="w-full px-4 py-3 bg-bg border border-border rounded-xl text-sm text-ink placeholder:text-ink-faint focus:outline-none focus:border-sage transition-colors"
                                 />
-                                
+
                             </div>
                         </div>
-                        
+
                     </div>
 
-                    
+
                 )}
-            </div>
+            </form>
 
             {/* Botones de Accion */}
-            <div className="p-6 pt-4 border-t border-[#EBE7DF] flex items-center justify-between bg-slate-50">
+            <div className="pt-4 border-t border-[#EBE7DF] flex items-center justify-between bg-white mt-6">
                 {step === 2 ? (
                     <button
-                    type="button"
-                    onClick={() => setStep(1)}
-                    className="px-4 py-2 text-sm font-semibold text-slate-500 hover:text-slate-700">
-                    <IoMdArrowBack className="inline" size={18} />Atrás
+                        type="button"
+                        onClick={() => setStep(1)}
+                        className="px-4 py-2 text-sm font-semibold text-slate-500 hover:text-slate-700">
+                        <IoMdArrowBack className="inline" size={18} />Atrás
                     </button>
                 ) : (
-                    <button 
-                    type="button"
-                    onClick={onClose}
-                    className="px-4 py-2 text-sm font-semibold text-slate-500 hover:text-slate-700">
-                      Cancelar
+                    <button
+                        type="button"
+                        onClick={handleClose}
+                        className="px-4 py-2 text-sm font-semibold text-slate-500 hover:text-slate-700">
+                        Cancelar
                     </button>
                 )}
 
                 {step === 1 ? (
                     <button
-                    type="button"
-                    onClick={handleNext}
-                    className="bg-[#529471] hover:bg-[#437a5d] text-white px-5 py-2.5 rounded-2xl font-semibold text-sm transition-all shadow-sm"
+                        type="button"
+                        onClick={handleNext}
+                        className="bg-[#529471] hover:bg-[#437a5d] text-white px-5 py-2.5 rounded-2xl font-semibold text-sm transition-all shadow-sm"
                     >Siguiente →</button>
                 )
-                 : (
-                    <button
-                    type="button"
-                    onClick={handleSubmit}
-                    disabled={isSubmitting}
-                    className="bg-[#529471] hover:bg-[#437a5d] text-white px-5 py-2.5 rounded-2xl font-semibold text-sm transition-all shadow-sm disabled:opacity-50">
-                      {isSubmitting ? "Guardando..." : "Crear alumno"}
-                    </button>
-                 )}
+                    : (
+                        <button
+                            type="button"
+                            onClick={handleSubmit}
+                            disabled={isSubmitting}
+                            className="bg-[#529471] hover:bg-[#437a5d] text-white px-5 py-2.5 rounded-2xl font-semibold text-sm transition-all shadow-sm disabled:opacity-50">
+                            {isSubmitting ? "Guardando..." : "Crear alumno"}
+                        </button>
+                    )}
             </div>
 
-        </div>
-        
-    </div>
-  )
+        </Modal>
+
+
+
+
+
+
+    );
 }
