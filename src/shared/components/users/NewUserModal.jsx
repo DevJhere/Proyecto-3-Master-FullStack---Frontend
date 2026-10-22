@@ -1,8 +1,9 @@
 import { useState } from "react";
-import { FiUser, FiMail, FiLock, FiBriefcase, FiShield, FiEye, FiEyeOff, FiCheck } from "react-icons/fi";
+import { FiUser, FiMail, FiBriefcase, FiShield, FiCheck } from "react-icons/fi";
 import apiClient from "../../config/axios";
 import { SPECIALIZATIONS } from "../../utils/constants";
 import { Modal } from "../ui/Modal";
+import { PasswordField } from "../ui/PasswordField";
 
 export const NewUserModal = ({ isOpen, onClose, onUserCreated }) => {
 
@@ -14,9 +15,6 @@ export const NewUserModal = ({ isOpen, onClose, onUserCreated }) => {
     specialization: "",
     rol: "pedagogo",
   });
-
-  //Estado para mostrar u ocultar la contraseña
-  const [showPassword, setShowPassword] = useState(false);
   
   //Estados Locales
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -33,7 +31,6 @@ export const NewUserModal = ({ isOpen, onClose, onUserCreated }) => {
       specialization: "",
       rol: "pedagogo",
     });
-    setShowPassword(false);
     onClose();
   };
   
@@ -176,29 +173,12 @@ export const NewUserModal = ({ isOpen, onClose, onUserCreated }) => {
           </div>
 
           {/* Contraseña */}
-          <div>
-            <label className="block text-[11px] font-bold uppercase tracking-wider text-ink-muted mb-1.5">
-              Contraseña de Acceso *
-            </label>
-            <div className="relative">
-              <input
-                type={showPassword ? "text" : "password"}
-                name="password"
-                value={formData.password}
-                onChange={handleChange}
-                placeholder="Mínimo 6 caracteres"
-                className="w-full bg-[#FAF8F5] border border-[#EBE7DF] focus:border-[#529471] focus:bg-white rounded-2xl pl-10 pr-10 py-2.5 text-sm text-ink-muted outline-none transition-all"
-              />
-              <FiLock className="absolute left-3.5 top-3.5 text-ink-muted" />
-              <button
-                type="button"
-                onClick={() => setShowPassword((prev) => !prev)}
-                className="absolute right-3.5 top-3.5 text-ink-muted hover:text-ink-faint cursor-pointer"
-              >
-                {showPassword ? <FiEyeOff /> : <FiEye />}
-              </button>
-            </div>
-          </div>
+          <PasswordField
+            value={formData.password}
+            onChange={handleChange}
+            placeholder="Contraseña"
+            required
+          />
 
           {/* Selector de Rol */}
           <div>
