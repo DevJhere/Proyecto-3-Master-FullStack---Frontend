@@ -1,3 +1,5 @@
+// Gestión de equipo (solo admin): listado y filtros, alta, edición y eliminación de miembros contra una lista de usuarios simulada
+
 import { describe, it, expect } from "vitest";
 import { fireEvent, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
@@ -25,6 +27,7 @@ const renderUsers = () => renderWithProviders(<Users />, { user: adminUser });
 // Tarjeta de un usuario concreto (el contenedor con la clase `group` que rodea su nombre)
 const cardOf = async (name) => (await screen.findByRole("heading", { name })).closest(".group");
 
+// Tarjetas, contadores, filtro por rol, búsqueda y protección de la propia cuenta
 describe("Users: listado y filtros", () => {
   it("muestra una tarjeta por miembro y los contadores de equipo", async () => {
     stubUsers();
@@ -105,6 +108,7 @@ describe("Users: listado y filtros", () => {
   });
 });
 
+// Registro de un miembro, asignación del rol admin y errores de validación o del servidor
 describe("Users: nuevo miembro", () => {
   const openForm = async (user) => {
     await user.click(screen.getByRole("button", { name: /Nuevo Miembro/ }));
@@ -230,6 +234,7 @@ describe("Users: nuevo miembro", () => {
   });
 });
 
+// Edición de datos y errores de la API; editar la propia cuenta actualiza también la sesión
 describe("Users: editar miembro", () => {
   const openEdit = async (user, name) => {
     await user.click(within(await cardOf(name)).getByRole("button", { name: "Editar" }));
@@ -332,6 +337,7 @@ describe("Users: editar miembro", () => {
   });
 });
 
+// Eliminación con confirmación; no se ofrece si el miembro tiene alumnos o sesiones asignados
 describe("Users: eliminar miembro", () => {
   const openDelete = async (user, name) => {
     await user.click(within(await cardOf(name)).getByTitle("Eliminar usuario del equipo"));

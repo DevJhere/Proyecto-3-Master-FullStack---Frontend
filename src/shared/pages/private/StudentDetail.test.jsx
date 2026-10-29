@@ -1,3 +1,5 @@
+// Ficha del alumno: carga, pestañas de sesiones e informes, recarga de datos y eliminación del alumno
+
 import { describe, it, expect, vi } from "vitest";
 import { screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
@@ -43,6 +45,7 @@ const stubApi = ({ students = [lucia, pablo], sessions = [] } = {}) => {
   );
 };
 
+// Estados de carga y error, y que una respuesta tardía de otro alumno no pise la ficha actual
 describe("StudentDetail: carga", () => {
   it("muestra el estado de carga y después la ficha del alumno y el contador de sesiones", async () => {
     stubApi({ sessions: [sessionFor(lucia), sessionFor(lucia), sessionFor(pablo)] });
@@ -88,6 +91,7 @@ describe("StudentDetail: carga", () => {
   });
 });
 
+// Cambio de pestaña y recarga de datos tras crear una sesión o cambiar su estado
 describe("StudentDetail: pestañas, sesiones e informes", () => {
   it("cambia a la pestaña de informes y muestra su contador y su lista", async () => {
     const withReports = { ...lucia, reports: [{ _id: "r1", title: "Informe inicial", date: "2026-10-01T10:00:00.000Z", attachmentDocument: "https://x/a.pdf" }] };
@@ -147,6 +151,7 @@ describe("StudentDetail: pestañas, sesiones e informes", () => {
   });
 });
 
+// Eliminación con confirmación del navegador; si la API falla se avisa y se permanece en la ficha
 describe("StudentDetail: eliminar alumno", () => {
   it("no hace nada si el usuario cancela la confirmación", async () => {
     stubApi();

@@ -1,10 +1,14 @@
+// Cliente HTTP compartido: cabecera Authorization y cierre de sesión automático ante un 401 (contra el servidor falso de MSW)
+
 import { afterEach, describe, it, expect, vi } from "vitest";
 import { http, HttpResponse } from "msw";
 import apiClient, { setUnauthorizedHandler } from "./axios";
 import { api, server } from "../../test/server";
 
+// Quita el manejador de 401 para que no se filtre de un test a otro
 afterEach(() => setUnauthorizedHandler(null));
 
+// El token guardado en localStorage se añade a cada petición como Bearer
 describe("apiClient: cabecera de autenticación", () => {
   it("envía Authorization: Bearer con el token guardado", async () => {
     let authorization;
@@ -36,7 +40,9 @@ describe("apiClient: cabecera de autenticación", () => {
   });
 });
 
+// Solo un 401 en rutas protegidas es sesión caducada; el 401 del login (credenciales mal) y el resto de errores no cierran sesión
 describe("apiClient: respuesta 401", () => {
+  // Responde a cualquier método de la ruta con el status indicado
   const stubStatus = (path, status) =>
     server.use(http.all(api(path), () => HttpResponse.json({ error: "x" }, { status })));
 

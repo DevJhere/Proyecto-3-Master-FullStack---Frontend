@@ -1,3 +1,5 @@
+// Modal reutilizable: accesibilidad (role dialog), cierre por botón, Escape y overlay, y bloqueo del scroll del body
+
 import { describe, it, expect, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";

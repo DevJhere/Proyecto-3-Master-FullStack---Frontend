@@ -1,3 +1,5 @@
+// Guarda de rutas privadas: sin sesión redirige a /login; con rol no permitido redirige a /dashboard
+
 import { describe, it, expect } from "vitest";
 import { screen } from "@testing-library/react";
 import { Route, Routes } from "react-router-dom";

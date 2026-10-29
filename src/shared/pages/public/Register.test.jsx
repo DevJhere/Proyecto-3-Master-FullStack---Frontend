@@ -1,3 +1,5 @@
+// Página de registro: validaciones, envío sin rol (el backend crea siempre pedagogos), mensajes y redirección al login
+
 import { describe, it, expect } from "vitest";
 import { fireEvent, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
@@ -25,6 +27,7 @@ const fillForm = async (user, { name = "Lucía Rodríguez", specialization = "Lo
   if (password) await user.type(screen.getByLabelText("Contraseña"), password);
 };
 
+// Pulsa 'Crear Cuenta'
 const submit = (user) => user.click(screen.getByRole("button", { name: "Crear Cuenta" }));
 
 // Registra un handler que guarda el body recibido

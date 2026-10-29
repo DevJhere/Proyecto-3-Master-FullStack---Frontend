@@ -1,3 +1,5 @@
+// Página de login: validación, envío al API, errores, estado de carga y mostrar/ocultar contraseña
+
 import { describe, it, expect } from "vitest";
 import { fireEvent, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";

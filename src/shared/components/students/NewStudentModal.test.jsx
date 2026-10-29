@@ -1,3 +1,5 @@
+// Alta de alumno en dos pasos (alumno -> tutor): validaciones de cada campo, envío como FormData y selector de pedagogo para admin
+
 import { useState } from "react";
 import { describe, it, expect, vi } from "vitest";
 import { screen, waitFor } from "@testing-library/react";
@@ -37,6 +39,7 @@ const captureStudentPost = (response = () => HttpResponse.json({ message: "Estud
   return captured;
 };
 
+// Rellena el paso 1 (datos del alumno) con valores válidos por defecto
 const fillStep1 = async (user, { name = "Lucía Navarro", age = "9", course = "3 Primaria", diagnosis = "Dislexia" } = {}) => {
   await user.type(screen.getByLabelText(/^Nombre Completo/), name);
   await user.type(screen.getByLabelText(/^Edad/), age);
@@ -44,15 +47,19 @@ const fillStep1 = async (user, { name = "Lucía Navarro", age = "9", course = "3
   if (diagnosis) await user.click(screen.getByRole("button", { name: diagnosis }));
 };
 
+// Rellena el paso 2 (datos del tutor) con valores válidos por defecto
 const fillStep2 = async (user, { nameTutor = "Carmen Gómez", phone = "600123456", email = "carmen@correo.com" } = {}) => {
   await user.type(screen.getByLabelText(/^Nombre del tutor/), nameTutor);
   await user.type(screen.getByLabelText(/^Teléfono/), phone);
   await user.type(screen.getByLabelText(/^Correo de Contacto/), email);
 };
 
+// Avanza al paso 2
 const next = (user) => user.click(screen.getByRole("button", { name: /Siguiente/ }));
+// Envía el formulario
 const create = (user) => user.click(screen.getByRole("button", { name: "Crear alumno" }));
 
+// Validaciones del alumno: obligatorios, edad entre 3 y 18, diagnóstico y foto (imagen de hasta 5MB)
 describe("NewStudentModal: paso 1 (alumno)", () => {
   it("empieza en el paso 1 y un pedagogo no ve el selector de pedagogo", () => {
     setup();
@@ -115,6 +122,7 @@ describe("NewStudentModal: paso 1 (alumno)", () => {
   });
 });
 
+// Validaciones del tutor (teléfono de 9 dígitos, correo), navegación entre pasos y envío
 describe("NewStudentModal: paso 2 (tutor) y envío", () => {
   const goToStep2 = async (user) => {
     await fillStep1(user);
@@ -247,6 +255,7 @@ describe("NewStudentModal: paso 2 (tutor) y envío", () => {
   });
 });
 
+// Un admin debe elegir pedagogo (solo se listan pedagogos) porque la API se lo exige al crear alumnos
 describe("NewStudentModal: como administrador", () => {
   const stubUsers = (users) => server.use(http.get(api("/users"), () => HttpResponse.json({ users })));
 

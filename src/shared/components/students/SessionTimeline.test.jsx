@@ -1,3 +1,5 @@
+// Historial de sesiones del alumno: orden, contenido y cambio de estado (PUT /sessions/:id) desde el menú desplegable
+
 import { describe, it, expect, vi } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
@@ -11,6 +13,7 @@ const setup = (sessions, { onSessionUpdated = vi.fn().mockResolvedValue(undefine
   return { onSessionUpdated, user: userEvent.setup() };
 };
 
+// Registra PUT /sessions/:id guardando el id y el body; `response` permite simular errores
 const capturePut = (response = () => HttpResponse.json({ message: "Sesión actualizada exitosamente" })) => {
   const captured = { id: null, body: null, calls: 0 };
   server.use(
@@ -24,6 +27,7 @@ const capturePut = (response = () => HttpResponse.json({ message: "Sesión actua
   return captured;
 };
 
+// Qué se pinta para cada sesión y el estado vacío
 describe("SessionTimeline: contenido", () => {
   it("muestra el estado vacío sin sesiones", () => {
     setup([]);
@@ -78,6 +82,7 @@ describe("SessionTimeline: contenido", () => {
   });
 });
 
+// Menú de estados: petición, recarga del padre, estado de espera y errores de la API
 describe("SessionTimeline: cambio de estado", () => {
   it("el menú ofrece los tres estados y marca el actual", async () => {
     const { user } = setup([makeSession({ status: "Pendiente" })]);

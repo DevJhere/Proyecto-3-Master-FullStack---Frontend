@@ -1,3 +1,5 @@
+// Utilidades de fechas: formateo en español y cálculo del lunes de la semana (usado por el calendario de sesiones)
+
 import { describe, it, expect } from "vitest";
 import {
   toLocalDateString,

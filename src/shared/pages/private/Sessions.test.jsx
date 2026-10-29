@@ -1,3 +1,5 @@
+// Calendario semanal de sesiones: estructura, colocación de sesiones, navegación entre semanas y agenda desde una celda libre
+
 import { afterEach, describe, it, expect, vi } from "vitest";
 import { screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
@@ -8,6 +10,7 @@ import { api, server } from "../../../test/server";
 import { makeSession, makeStudent, pedagogoUser } from "../../../test/fixtures";
 import { renderWithProviders } from "../../../test/utils";
 
+// Devuelve el reloj real tras los tests que lo congelan
 afterEach(() => vi.useRealTimers());
 
 // "Hoy" es el jueves 5 de noviembre de 2026: la semana mostrada va del lunes 2 al viernes 6
@@ -49,6 +52,7 @@ const cellAt = (hour, day) => {
 
 const waitForCalendar = () => screen.findByText("2 de noviembre – 6 de noviembre, 2026");
 
+// Semana de lunes a viernes, franjas de 09:00 a 17:00, estado de carga y errores
 describe("Sessions: estructura del calendario", () => {
   it("muestra la semana actual de lunes a viernes y resalta el día de hoy", async () => {
     freezeToday();
@@ -95,6 +99,7 @@ describe("Sessions: estructura del calendario", () => {
   });
 });
 
+// Posición de cada sesión según su hora local y qué sesiones se ocultan
 describe("Sessions: sesiones en el calendario", () => {
   it("coloca cada sesión en su día y hora local con el nombre del alumno", async () => {
     freezeToday();
@@ -146,6 +151,7 @@ describe("Sessions: sesiones en el calendario", () => {
   });
 });
 
+// Botones de semana anterior, siguiente y volver a la actual
 describe("Sessions: navegación entre semanas", () => {
   it("avanza y retrocede de semana y vuelve a la actual", async () => {
     freezeToday();
@@ -178,6 +184,7 @@ describe("Sessions: navegación entre semanas", () => {
   });
 });
 
+// Al pulsar una celda libre se abre ScheduleSessionModal con ese día y hora
 describe("Sessions: agendar desde una celda vacía", () => {
   it("al pulsar una celda libre abre el formulario con ese día y hora", async () => {
     freezeToday();

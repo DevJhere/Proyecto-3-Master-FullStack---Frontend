@@ -1,3 +1,5 @@
+// Dashboard: saludo y fecha, indicadores, sesiones de hoy del usuario, acceso rápido a alumnos y gestión de errores de la API
+
 import { afterEach, describe, it, expect, vi } from "vitest";
 import { screen, within } from "@testing-library/react";
 import { http, HttpResponse } from "msw";
@@ -7,6 +9,7 @@ import { api, server } from "../../../test/server";
 import { adminUser, makeSession, makeStudent, otherPedagogoUser, pedagogoUser } from "../../../test/fixtures";
 import { renderWithProviders } from "../../../test/utils";
 
+// Devuelve el reloj real tras los tests que lo congelan
 afterEach(() => vi.useRealTimers());
 
 // "Hoy" es el jueves 5 de noviembre de 2026, 08:00 en Madrid
@@ -39,6 +42,7 @@ const renderDashboard = (user = pedagogoUser) =>
     { route: "/dashboard", user },
   );
 
+// Tarjeta de un indicador a partir de su título
 const kpi = (title) => screen.getByText(title).parentElement;
 
 // El texto del saludo está repartido en varios nodos: lo buscamos por el contenido del párrafo completo
@@ -47,6 +51,7 @@ const greeting = (regex) => screen.findByText((_, element) => element.tagName ==
 // El alumno aparece tanto en 'Sesiones de hoy' como en 'Acceso rápido': acotamos a la sección de hoy
 const todaySection = () => screen.getByText("Sesiones de hoy").parentElement.parentElement;
 
+// Saludo, sesiones pendientes de hoy e indicadores (alumnos, sesiones del mes y completadas)
 describe("Dashboard: cabecera y resumen", () => {
   it("saluda con el primer nombre y la fecha de hoy", async () => {
     freezeToday();
@@ -112,6 +117,7 @@ describe("Dashboard: cabecera y resumen", () => {
   });
 });
 
+// Solo se muestran las sesiones de hoy asignadas al usuario, ordenadas por hora
 describe("Dashboard: sesiones de hoy", () => {
   it("lista las sesiones de hoy ordenadas por hora, con alumno y estado", async () => {
     freezeToday();
@@ -181,6 +187,7 @@ describe("Dashboard: sesiones de hoy", () => {
   });
 });
 
+// Atajos a alumnos (máximo 6) y qué se muestra cuando falla la carga
 describe("Dashboard: acceso rápido y errores", () => {
   it("muestra hasta 6 alumnos en el acceso rápido", async () => {
     freezeToday();

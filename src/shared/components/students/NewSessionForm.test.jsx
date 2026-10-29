@@ -1,3 +1,5 @@
+// Formulario de nueva sesiÃ³n en la ficha del alumno: fecha local -> ISO UTC, adjunto PDF/DOC/TXT (hasta 20MB) y errores del servidor
+
 import { afterEach, describe, it, expect, vi } from "vitest";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
@@ -5,6 +7,7 @@ import { http, HttpResponse, delay } from "msw";
 import { NewSessionForm } from "./NewSessionForm";
 import { api, server } from "../../../test/server";
 
+// Algunos tests congelan el reloj para comprobar la fecha por defecto
 afterEach(() => vi.useRealTimers());
 
 const setup = ({ studentId = "student-1", userOptions } = {}) => {
@@ -31,6 +34,7 @@ const captureSessionPost = (response = () => HttpResponse.json({ message: "SesiÃ
   return captured;
 };
 
+// fireEvent porque user.type no funciona bien con inputs datetime-local en jsdom
 const setDate = (value) => fireEvent.change(screen.getByLabelText(/Fecha y hora/), { target: { value } });
 const save = (user) => user.click(screen.getByRole("button", { name: "Guardar Registro" }));
 

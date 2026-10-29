@@ -1,3 +1,5 @@
+// Modal para agendar una sesión desde el calendario: selección de alumno, envío a POST /sessions y franjas ocupadas del día
+
 import { describe, it, expect, vi } from "vitest";
 import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
@@ -12,6 +14,7 @@ const SELECTED = new Date(2026, 10, 5, 10, 0);
 const lucia = makeStudent({ _id: "s-lucia", name: "Lucía Navarro", course: "3 Primaria" });
 const pablo = makeStudent({ _id: "s-pablo", name: "Pablo Ruiz", course: "1 ESO" });
 
+// Renderiza el modal abierto con dos alumnos y devuelve los callbacks espiados
 const setup = (props = {}) => {
   const onClose = vi.fn();
   const onSessionCreated = vi.fn();
@@ -29,6 +32,7 @@ const setup = (props = {}) => {
   return { onClose, onSessionCreated, user: userEvent.setup() };
 };
 
+// Registra POST /sessions guardando el body recibido y cuántas veces se llamó; `response` permite simular errores
 const captureSessionPost = (response = () => HttpResponse.json({ message: "Sesión creada exitosamente" }, { status: 201 })) => {
   const captured = { body: null, calls: 0 };
   server.use(
@@ -41,6 +45,7 @@ const captureSessionPost = (response = () => HttpResponse.json({ message: "Sesi�
   return captured;
 };
 
+// Pulsa el botón de envío del modal
 const schedule = (user) => user.click(screen.getByRole("button", { name: "Agendar Sesión" }));
 
 describe("ScheduleSessionModal", () => {

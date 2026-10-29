@@ -1,7 +1,10 @@
+// Normalización de respuestas de la API (listas de sesiones/alumnos) y extracción del mensaje de error para mostrar al usuario
+
 import { describe, it, expect } from "vitest";
 import { AxiosError } from "axios";
 import { normalizeSessions, normalizeStudents, getApiErrorMessage } from "./APIHelpers";
 
+// Mismo contrato para ambas funciones: devuelven siempre un array, sea cual sea la forma de la respuesta
 describe.each([
   ["normalizeSessions", normalizeSessions, "sessions"],
   ["normalizeStudents", normalizeStudents, "students"],
@@ -29,6 +32,7 @@ describe.each([
   );
 });
 
+// Prioridad del mensaje: error > message > texto plano > mensaje por defecto; los fallos de red se traducen al español
 describe("getApiErrorMessage", () => {
   const axiosError = (data) => ({ response: { data } });
 

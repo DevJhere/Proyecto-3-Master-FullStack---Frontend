@@ -1,3 +1,5 @@
+// AuthProvider/useAuth: restauración de la sesión guardada, sincronización con /auth/me, login, logout y updateUser
+
 import { describe, it, expect } from "vitest";
 import { act, renderHook, waitFor } from "@testing-library/react";
 import { http, HttpResponse } from "msw";
@@ -7,8 +9,10 @@ import { api, server } from "../../test/server";
 import { adminUser, pedagogoUser } from "../../test/fixtures";
 import { loginAs } from "../../test/utils";
 
+// Renderiza el hook useAuth dentro de un AuthProvider real, sin router
 const renderAuth = () => renderHook(() => useAuth(), { wrapper: AuthProvider });
 
+// Arranque: lee token y usuario de localStorage, descarta datos corruptos y los refresca desde el servidor
 describe("AuthProvider: sesión guardada", () => {
   it("sin datos guardados arranca sin autenticar", () => {
     const { result } = renderAuth();
@@ -79,6 +83,7 @@ describe("AuthProvider: sesión guardada", () => {
   });
 });
 
+// Acciones del contexto: qué devuelven y qué guardan en estado y almacenamiento
 describe("AuthProvider: login, logout y updateUser", () => {
   it("login correcto guarda token y usuario y actualiza el estado", async () => {
     server.use(
@@ -163,6 +168,7 @@ describe("AuthProvider: login, logout y updateUser", () => {
   });
 });
 
+// El hook solo se puede usar dentro del proveedor
 describe("useAuth", () => {
   it("lanza un error claro si se usa fuera de un AuthProvider", () => {
     const consoleError = () => {};

@@ -1,3 +1,5 @@
+// Resolución de la URL del avatar: imagen por defecto de Cloudinary o la propia del usuario
+
 import { describe, it, expect } from "vitest";
 import { getAvatarUrl } from "./HelperAvatar";
 

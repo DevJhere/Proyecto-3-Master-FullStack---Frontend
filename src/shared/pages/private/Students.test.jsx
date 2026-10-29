@@ -1,3 +1,5 @@
+// Listado de alumnos: tarjetas, búsqueda, errores de la API y alta de un nuevo alumno
+
 import { describe, it, expect } from "vitest";
 import { screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
@@ -29,8 +31,10 @@ const renderStudents = (user = pedagogoUser) =>
     { route: "/students", user },
   );
 
+// Escribe en el buscador de alumnos
 const search = (user, text) => user.type(screen.getByLabelText("Buscar alumnos"), text);
 
+// Tarjetas con los datos del alumno, contador de sesiones y estado vacío
 describe("Students: listado", () => {
   it("muestra el estado de carga y después una tarjeta por alumno con enlace a su ficha", async () => {
     stubApi();
@@ -71,6 +75,7 @@ describe("Students: listado", () => {
   });
 });
 
+// Filtrado en vivo y mensaje cuando nada coincide
 describe("Students: búsqueda", () => {
   it.each([
     ["por nombre", "lucía", ["Lucía Navarro"]],
@@ -106,6 +111,7 @@ describe("Students: búsqueda", () => {
   });
 });
 
+// Un fallo de la API se muestra como error, no como lista vacía
 describe("Students: errores", () => {
   it("muestra el error de la API y no el aviso de 'sin alumnos'", async () => {
     server.use(
@@ -130,6 +136,7 @@ describe("Students: errores", () => {
   });
 });
 
+// El botón abre NewStudentModal y la lista se refresca al crear
 describe("Students: nuevo alumno", () => {
   it("el botón abre el formulario y al crear un alumno se refresca la lista sin recargar la página", async () => {
     let students = [lucia];

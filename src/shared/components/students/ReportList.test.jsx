@@ -1,3 +1,5 @@
+// Listado de informes del alumno y modal para subir uno nuevo (multipart a POST /students/:id/reports)
+
 import { describe, it, expect, vi } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
@@ -16,6 +18,7 @@ const setup = ({ reports = REPORTS, userOptions } = {}) => {
   return { onReportUploaded, user: userEvent.setup(userOptions) };
 };
 
+// Registra la subida guardando el FormData recibido; `response` permite simular errores del servidor
 const captureUpload = (response = () => HttpResponse.json({ message: "Informe subido correctamente" }, { status: 201 })) => {
   const captured = { form: null, calls: 0 };
   server.use(
@@ -28,6 +31,7 @@ const captureUpload = (response = () => HttpResponse.json({ message: "Informe su
   return captured;
 };
 
+// Abre el modal con el botón 'Subir Informe'
 const openModal = (user) => user.click(screen.getByRole("button", { name: /Subir Informe/ }));
 const pdf = (name = "informe.pdf") => new File(["pdf"], name, { type: "application/pdf" });
 

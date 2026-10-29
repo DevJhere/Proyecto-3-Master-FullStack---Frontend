@@ -1,3 +1,5 @@
+// Página de perfil: datos del usuario, guardado (PUT /users/:id multipart) y subida de foto con validación de tipo y tamaño
+
 import { describe, it, expect } from "vitest";
 import { fireEvent, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
@@ -31,6 +33,7 @@ const capturePut = (response) => {
 const save = (user) => user.click(screen.getByRole("button", { name: "Guardar cambios" }));
 const photoInput = () => screen.getByLabelText("Foto de perfil");
 
+// Qué se muestra al abrir la página (el correo no es editable)
 describe("Profile: datos iniciales", () => {
   it("muestra los datos del usuario y deja el correo solo en lectura", () => {
     setup();
@@ -60,6 +63,7 @@ describe("Profile: datos iniciales", () => {
   });
 });
 
+// Envío del formulario, sincronización de la sesión guardada y mensajes de éxito/error
 describe("Profile: guardar cambios", () => {
   it("envía nombre y especialidad (no el correo), confirma y actualiza la sesión guardada", async () => {
     const captured = capturePut();
@@ -124,6 +128,7 @@ describe("Profile: guardar cambios", () => {
   });
 });
 
+// Previsualización y límites de la foto: JPG/PNG/WebP de hasta 5MB
 describe("Profile: foto de perfil", () => {
   it("previsualiza la foto elegida y la envía junto al resto de datos", async () => {
     const captured = capturePut();
