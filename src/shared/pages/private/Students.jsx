@@ -16,14 +16,14 @@ export const Students = () => {
   const [ isLoadingStudents, setIsLoadingStudents ] = useState(true);
   const [ errorStudents, setErrorStudents ] = useState("");
 
-  // Cargamos los datos de alumnos
+  // Cargamos los datos de alumnos. También sirve para refrescar la lista tras crear un alumno, sin volver a mostrar el estado de carga.
   const fetchStudentsData = async() => {
       try {
-        setIsLoadingStudents(true);
         //Peticion a endpoint
         const response = await apiClient("/students");
         setStudents(normalizeStudents(response));
-        
+        setErrorStudents("");
+
       } catch (err) {
         setErrorStudents(getApiErrorMessage(err, "Error al cargar los alumnos."));
       } finally {
@@ -32,6 +32,8 @@ export const Students = () => {
     };
     
   useEffect( () => {
+    // Carga de datos al montar la página: el setState ocurre tras el await (no de forma síncrona), la regla no lo distingue al reutilizar la función para recargar.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchStudentsData();
   }, []);
 
@@ -45,7 +47,6 @@ export const Students = () => {
   useEffect( () => {
     const fetchDashboardData = async() => {
       try {
-        setIsLoadingSessions(true);
         //Peticion a endpoint
         const response = await apiClient("/sessions");
         
@@ -92,11 +93,11 @@ export const Students = () => {
 
   return (
     <div className="flex-1 overflow-y-auto">
-      <div className="max-w-8xl mx-auto px-8 py-6">
+      <div className="max-w-7xl mx-auto px-8 py-6">
         {/* Contenedor cabecera */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
           <div>
-            <h1 className="text-3xl tracking-wider font-500 text-ink leading-snug">Alumnos</h1>
+            <h1 className="text-3xl tracking-wider font-medium text-ink leading-snug">Alumnos</h1>
             <p className="text-sm text-slate-500 mt-1 tracking-wider leading-snug">Gestión de alumnos y expedientes</p>
           </div>
 
@@ -118,10 +119,11 @@ export const Students = () => {
           <IoSearchOutline className="absolute left-4 top-1/2 -translate-y-1/2 text-ink-faint" size={18} />
           <input
           type="text"
+          aria-label="Buscar alumnos"
           placeholder="Búsqueda por nombre, curso, diagnóstico, tutor…"
           value={searchTerm}
           onChange={ (e) => setSearchTerm(e.target.value)}
-          className="w-full pl-11 pr-4 py-3 bg-white border border-[#e8e4db] rounded-xl text-sm text-ink placeholder:text-int-faint focus:outline-none focus:border-[#5d9e7e] transition-colors"
+          className="w-full pl-11 pr-4 py-3 bg-white border border-[#e8e4db] rounded-xl text-sm text-ink placeholder:text-ink-faint focus:outline-none focus:border-[#5d9e7e] transition-colors"
           />
         </div>
 
@@ -131,14 +133,15 @@ export const Students = () => {
           <div className="text-center py-12 text-slate-400 font-medium text-sm tracking-wider">Cargando alumnos...</div>
         )}
 
-        {errorStudents && (
-          <div className="bg-red-50 text-red-600 p-4 rounded-2xl border border-red-100 mb-6 text-sm tracking-wider">
-            {errorStudents}
+        {(errorStudents || errorSessions) && (
+          <div role="alert" className="bg-red-50 text-red-600 p-4 rounded-2xl border border-red-100 mb-6 text-sm tracking-wider space-y-1">
+            {errorStudents && <p>{errorStudents}</p>}
+            {errorSessions && <p>{errorSessions}</p>}
           </div>
         )}
 
-        {/* No se encuentran alumnos */}
-        {!isLoadingStudents && !isLoadingSessions && filteredStudents.length === 0 && (
+        {/* No se encuentran alumnos (si la carga ha fallado, el aviso de error ya lo explica) */}
+        {!isLoadingStudents && !isLoadingSessions && !errorStudents && filteredStudents.length === 0 && (
           <div className="text-center py-16 text-ink-faint">
             <LuSearchX className="w-16 h-16 mx-auto mb-4 text-ink-faint"/>
             <p className="text-lg tracking-wider">No se han encontrado alumnos.</p>

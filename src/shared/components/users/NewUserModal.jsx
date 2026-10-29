@@ -4,6 +4,7 @@ import apiClient from "../../config/axios";
 import { SPECIALIZATIONS } from "../../utils/constants";
 import { Modal } from "../ui/Modal";
 import { PasswordField } from "../ui/PasswordField";
+import { getApiErrorMessage } from "../../utils/APIHelpers";
 
 export const NewUserModal = ({ isOpen, onClose, onUserCreated }) => {
 
@@ -67,30 +68,32 @@ export const NewUserModal = ({ isOpen, onClose, onUserCreated }) => {
         specialization: formData.specialization,
       });
 
-      // 2. Si se eligió 'admin' y el email no contenía @admin.com, actualizamos su rol de inmediato
-      if (formData.rol === "admin" && !formData.email.includes("@admin.com")) {
+      // 2. El registro siempre crea un pedagogo: si se eligió 'admin', actualizamos su rol de inmediato
+      let roleAssignmentFailed = false;
+
+      if (formData.rol === "admin") {
         try {
           const listRes = await apiClient.get("/users");
           const createdUser = listRes.data?.users?.find(
             (u) => u.email.toLowerCase() === formData.email.trim().toLowerCase()
           );
-          if (createdUser) {
-            await apiClient.put(`/users/${createdUser._id}`, {
-              rol: "admin",
-            });
-          }
+
+          if (!createdUser) throw new Error("Usuario recién creado no encontrado");
+
+          await apiClient.put(`/users/${createdUser._id}`, {
+            rol: "admin",
+          });
         } catch (err) {
-          // Si falla la actualización del rol en cascada, el usuario igual fue creado
+          // Si falla la actualización del rol en cascada, el usuario igual fue creado: se lo comunicamos al padre
           console.log("Error al actualizar el rol:", err);
-          setErrorMsg("Usuario registrado correctamente, pero hubo un error al asignarle el rol de administrador.");
+          roleAssignmentFailed = true;
         }
       }
 
-      onUserCreated();
+      onUserCreated({ roleAssignmentFailed });
       handleClose();
     } catch (err) {
-      const data = err.response?.data;
-      setErrorMsg(data?.error || data?.message || "Error al registrar el usuario.");
+      setErrorMsg(getApiErrorMessage(err, "Error al registrar el usuario."));
     } finally {
       setIsSubmitting(false);
     }
@@ -108,24 +111,25 @@ export const NewUserModal = ({ isOpen, onClose, onUserCreated }) => {
       {/* Formulario */}
         <form onSubmit={handleSubmit} className="mt-5 space-y-3.5">
           {errorMsg && (
-            <div className="p-3 bg-red-50 border border-red-200 rounded-2xl text-xs text-red-700">
+            <div role="alert" className="p-3 bg-red-50 border border-red-200 rounded-2xl text-xs text-red-700">
               {errorMsg}
             </div>
           )}
 
           {/* Nombre */}
           <div>
-            <label className="block text-[11px] font-bold uppercase tracking-wider text-ink-muted mb-1.5">
+            <label htmlFor="new-user-name" className="block text-[11px] font-bold uppercase tracking-wider text-ink-muted mb-1.5">
               Nombre Completo *
             </label>
             <div className="relative">
               <input
                 type="text"
+                id="new-user-name"
                 name="name"
                 value={formData.name}
                 onChange={handleChange}
                 placeholder="ej: Dra. Sofía Ramírez"
-                className="w-full bg-[#FAF8F5] border border-[#EBE7DF] focus:border-[#529471] focus:bg-white rounded-2xl pl-10 pr-4 py-2.5 text-sm text-shadow-ink-muted outline-none transition-all"
+                className="w-full bg-[#FAF8F5] border border-[#EBE7DF] focus:border-[#529471] focus:bg-white rounded-2xl pl-10 pr-4 py-2.5 text-sm text-ink-muted outline-none transition-all"
               />
               <FiUser className="absolute left-3.5 top-3.5 text-ink-muted" />
             </div>
@@ -133,17 +137,18 @@ export const NewUserModal = ({ isOpen, onClose, onUserCreated }) => {
 
           {/* Email */}
           <div>
-            <label className="block text-[11px] font-bold uppercase tracking-wider text-ink-muted mb-1.5">
+            <label htmlFor="new-user-email" className="block text-[11px] font-bold uppercase tracking-wider text-ink-muted mb-1.5">
               Correo Electrónico *
             </label>
             <div className="relative">
               <input
                 type="email"
+                id="new-user-email"
                 name="email"
                 value={formData.email}
                 onChange={handleChange}
                 placeholder="profesional@raicesyalas.com"
-                className="w-full bg-[#FAF8F5] border border-[#EBE7DF] focus:border-[#529471] focus:bg-white rounded-2xl pl-10 pr-4 py-2.5 text-sm text-shadow-ink-muted outline-none transition-all"
+                className="w-full bg-[#FAF8F5] border border-[#EBE7DF] focus:border-[#529471] focus:bg-white rounded-2xl pl-10 pr-4 py-2.5 text-sm text-ink-muted outline-none transition-all"
               />
               <FiMail className="absolute left-3.5 top-3.5 text-ink-muted" />
             </div>
@@ -151,15 +156,16 @@ export const NewUserModal = ({ isOpen, onClose, onUserCreated }) => {
 
           {/* Especialidad */}
           <div>
-            <label className="block text-[11px] font-bold uppercase tracking-wider text-ink-muted mb-1.5">
+            <label htmlFor="new-user-specialization" className="block text-[11px] font-bold uppercase tracking-wider text-ink-muted mb-1.5">
               Especialidad *
             </label>
             <div className="relative">
               <select
+                id="new-user-specialization"
                 name="specialization"
                 value={formData.specialization}
                 onChange={handleChange}
-                className="w-full bg-[#FAF8F5] border border-[#EBE7DF] focus:border-[#529471] focus:bg-white rounded-2xl pl-10 pr-4 py-2.5 text-sm text-shadow-ink-muted outline-none transition-all cursor-pointer"
+                className="w-full bg-[#FAF8F5] border border-[#EBE7DF] focus:border-[#529471] focus:bg-white rounded-2xl pl-10 pr-4 py-2.5 text-sm text-ink-muted outline-none transition-all cursor-pointer"
               >
                 <option value="">Selecciona una especialidad</option>
                 {Object.values(SPECIALIZATIONS).map((spec) => (
@@ -181,13 +187,14 @@ export const NewUserModal = ({ isOpen, onClose, onUserCreated }) => {
           />
 
           {/* Selector de Rol */}
-          <div>
-            <label className="block text-[11px] font-bold uppercase tracking-wider text-ink-muted mb-1.5">
+          <div role="group" aria-labelledby="new-user-role-label">
+            <p id="new-user-role-label" className="block text-[11px] font-bold uppercase tracking-wider text-ink-muted mb-1.5">
               Rol de Acceso *
-            </label>
+            </p>
             <div className="grid grid-cols-2 gap-3">
               <button
                 type="button"
+                aria-pressed={formData.rol === "pedagogo"}
                 onClick={() => setFormData((prev) => ({ ...prev, rol: "pedagogo" }))}
                 className={`p-3 rounded-2xl border text-left transition-all cursor-pointer ${
                   formData.rol === "pedagogo"
@@ -204,6 +211,7 @@ export const NewUserModal = ({ isOpen, onClose, onUserCreated }) => {
 
               <button
                 type="button"
+                aria-pressed={formData.rol === "admin"}
                 onClick={() => setFormData((prev) => ({ ...prev, rol: "admin" }))}
                 className={`p-3 rounded-2xl border text-left transition-all cursor-pointer ${
                   formData.rol === "admin"

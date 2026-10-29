@@ -5,7 +5,7 @@ import { FiChevronLeft, FiChevronRight, FiPlus } from "react-icons/fi";
 import { ScheduleSessionModal } from "../../components/session/ScheduleSessionModal";
 import { HOURS, PASTEL_THEMES } from "../../utils/constants";
 import { getMondayOfWeek } from "../../utils/DateHelpers";
-import { normalizeSessions, normalizeStudents } from "../../utils/APIHelpers";
+import { normalizeSessions, normalizeStudents, getApiErrorMessage } from "../../utils/APIHelpers";
 
 
 export const Sessions = () => {
@@ -14,6 +14,7 @@ export const Sessions = () => {
   const [sessions, setSessions] = useState([]);
   const [students, setStudents] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState("");
 
   //Fecha inicio de la semana empleando la función getMondayOfWeek para tener el lunes de la semana actual
   const [currentWeekStart, setCurrentWeekStart] = useState(() => getMondayOfWeek());
@@ -22,21 +23,21 @@ export const Sessions = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedDateTime, setSelectedDateTime] = useState(null);
 
-  // Cargamos sesiones y alumnos
+  // Cargamos sesiones y alumnos. También sirve para refrescar el calendario tras agendar una sesión, sin volver a mostrar el estado de carga.
   const fetchCalendardata = async () => {
     try {
-      setIsLoading(true);
       const [sessionRes, studentRes] = await Promise.all([
         apiClient.get("/sessions"),
         apiClient.get("/students"),
       ]);
-      
+
       //Normalizamos el tipo de dato que nos devuelven las respuestas con la función APIHelpers
       setSessions(normalizeSessions(sessionRes));
       setStudents(normalizeStudents(studentRes));
+      setError("");
 
     } catch (err) {
-      console.error("Error al cargar los datos del calendario:", err);
+      setError(getApiErrorMessage(err, "Error al cargar los datos del calendario."));
     } finally {
       setIsLoading(false);
     }
@@ -44,6 +45,8 @@ export const Sessions = () => {
 
   //hook de carga de datos
   useEffect(() => {
+    // Carga de datos al montar la página: el setState ocurre tras el await (no de forma síncrona), la regla no lo distingue al reutilizar la función para recargar.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchCalendardata();
   }, []);
 
@@ -156,6 +159,16 @@ export const Sessions = () => {
             </button>
           </div>
         </div>
+        {/* Estados de carga y de error: sin ellos un fallo de la API parecería un calendario sin sesiones */}
+        {isLoading && (
+          <p className="text-center text-sm text-slate-400 font-medium">Cargando calendario...</p>
+        )}
+        {error && (
+          <div role="alert" className="bg-red-50 text-red-600 p-4 rounded-2xl border border-red-100 text-sm">
+            {error}
+          </div>
+        )}
+
         {/* CONTENEDOR DE LA REJILLA DEL CALENDARIO */}
         <div className="bg-white rounded-3xl border border-[#EBE7DF] overflow-hidden shadow-sm">
           {/* Cabecera de días (LUN 24, MAR 25, ...) */}

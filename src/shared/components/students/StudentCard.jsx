@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import { getAvatarUrl } from "../../utils/HelperAvatar";
-import { COURSES, DIAGNOSIS, TUTOR_RELATIONSHIP } from "../../utils/constants";
+import { COURSES, DIAGNOSIS } from "../../utils/constants";
 
 
 export const StudentCard = ({student}) => {
@@ -52,7 +52,7 @@ export const StudentCard = ({student}) => {
 
                 {/* Sesiones */}
                 <span className="text-xs text-slate-400 font-medium">
-                    {student.sessionsCount || 0} sesión{(student.sessionsCount !== 1) ? "es" : ""}
+                    {student.sessionsCount || 0} {student.sessionsCount === 1 ? "sesión" : "sesiones"}
                 </span>
             </div>
 

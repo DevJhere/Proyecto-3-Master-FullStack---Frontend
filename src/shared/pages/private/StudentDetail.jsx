@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import apiClient from "../../config/axios";
 import { IoTrashOutline } from "react-icons/io5";
 import { IoIosArrowBack } from "react-icons/io";
@@ -17,11 +17,13 @@ export const StudentDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
 
-  //Estados de alumno y sesiones
-  const [ student, setStudent] = useState(null);
-  const [ sessions, setSessions] = useState([]);
-  const [ isLoadingStudents, setIsLoadingStudents] = useState(true);
-  const [ error, setError] = useState('');
+  //Datos del alumno y sus sesiones, junto al id al que corresponden. Mientras data.id no coincida con el id de la URL se está cargando.
+  const [ data, setData ] = useState({ id: null, student: null, sessions: [], error: '' });
+  const { student, sessions, error } = data;
+  const isLoadingStudents = data.id !== id;
+
+  //Id actual de la URL: permite descartar respuestas de un alumno anterior si el usuario navega a otro antes de que lleguen
+  const currentId = useRef(id);
 
   //Pestaña activa Intervención | Informes
   const [activeTab, setActiveTab] = useState('intervention');
@@ -29,35 +31,38 @@ export const StudentDetail = () => {
   // Esta para desplegar el formulario Nueva sesion
   const [ showNewSession, setShowNewSession] = useState(false);
 
-  // Función para obtener los datos del estudiante
-  const fetchStudentData = async() => {
+  // Función para obtener los datos del estudiante. También se usa para recargar tras crear una sesión o subir un informe,
+  // sin volver a mostrar el estado de carga (así no se cierran los formularios abiertos).
+  const fetchStudentData = useCallback( async() => {
       try {
-        setIsLoadingStudents(true);
         //Hacemos peticiones simultaneas para obtener alumno y sesiones
         const [studentRes, sessionsRes] = await Promise.all([
           apiClient(`/students/${id}`),
           apiClient(`/sessions`), //Revisar backend solicitud sesiones estudiante por id
         ])
-        
-        //Almacenamos el alumno que se ha traido de la petición
-        setStudent(studentRes.data);
+
+        if(currentId.current !== id) return;
 
         //Usamos helper normalizador
         const allSessions = normalizeSessions(sessionsRes);
         const filteredSessions = allSessions.filter(session => (session.student?._id || session.student) === id);
-        setSessions(filteredSessions);
-        
+
+        setData({ id, student: studentRes.data, sessions: filteredSessions, error: '' });
+
       } catch (err) {
-        setError(getApiErrorMessage(err, "Error al cargar la información del alumno"));
-      } finally {
-        setIsLoadingStudents(false);
+        if(currentId.current !== id) return;
+
+        setData({ id, student: null, sessions: [], error: getApiErrorMessage(err, "Error al cargar la información del alumno") });
       }
-    };
+    }, [id]);
 
   // Cargamos datos del estudiante
   useEffect( () => {
+    currentId.current = id;
+    // Carga de datos al montar la página: el setState ocurre tras el await (no de forma síncrona), la regla no lo distingue al reutilizar la función para recargar.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchStudentData();
-  }, [id]);
+  }, [id, fetchStudentData]);
 
   //Manejador para Eliminar Alumno
   const handleDeleteStudent = async() => {
@@ -70,7 +75,7 @@ export const StudentDetail = () => {
         await apiClient.delete(`/students/${id}`);
         navigate("/students");
     } catch (err) {
-        alert(err.response?.data?.message || "Error al eliminar al alumno.");
+        alert(getApiErrorMessage(err, "Error al eliminar al alumno."));
     }
   };
 

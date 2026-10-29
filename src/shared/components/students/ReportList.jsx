@@ -1,9 +1,13 @@
 import apiClient from "../../config/axios";
 import { useState } from "react";
 import { FiFileText, FiDownload, FiUploadCloud } from "react-icons/fi";
-import { IoClose } from "react-icons/io5";
+import { Modal } from "../ui/Modal";
+import { SIZE_FILES } from "../../utils/constants";
+import { getApiErrorMessage } from "../../utils/APIHelpers";
 
-
+//Formatos de documento que acepta el backend para los informes
+const ALLOWED_DOCUMENT_EXTENSIONS = [".pdf", ".doc", ".docx", ".txt"];
+const DEFAULT_REPORT_TITLE = "Informe de Evaluación";
 
 export const ReportList = ( {studentId, reports = [], onReportUploaded}) => {
 
@@ -11,7 +15,7 @@ export const ReportList = ( {studentId, reports = [], onReportUploaded}) => {
   const [ isUploading, setIsUploading ] = useState(false);
   const [ showUploadModal, setShowUploadModal ] = useState(false);
   const [ uploadError, setUploadError ] = useState("");
-  
+
   // Estado para gestionar el título y el archivo del reporte
   const [ title, setTitle ] = useState("");
   const [ file, setFile ] = useState(null);
@@ -30,12 +34,42 @@ export const ReportList = ( {studentId, reports = [], onReportUploaded}) => {
     });
   };
 
+  //Cerramos el modal y dejamos el formulario limpio para la próxima vez
+  const closeUploadModal = () => {
+    setShowUploadModal(false);
+    setUploadError("");
+    setTitle("");
+    setFile(null);
+  };
+
+  //Manejador al elegir el documento: validamos formato y tamaño antes de enviarlo
+  const handleFileChange = (e) => {
+    const selected = e.target.files[0];
+    if(!selected) return;
+
+    const isAllowedFormat = ALLOWED_DOCUMENT_EXTENSIONS.some( (extension) => selected.name.toLowerCase().endsWith(extension));
+    if(!isAllowedFormat){
+      setFile(null);
+      setUploadError("El documento debe ser un PDF, Word (.doc, .docx) o de texto (.txt).");
+      return;
+    }
+
+    if(selected.size > SIZE_FILES.MAX_SIZE_20MB){
+      setFile(null);
+      setUploadError("El documento no puede superar los 20MB.");
+      return;
+    }
+
+    setUploadError("");
+    setFile(selected);
+  };
+
   //Manejador para subir el nuevo informe
   const handleUploadReport = async (e) => {
     e.preventDefault();
 
     if(!file){
-      setUploadError("POr favor, selecciona un documento")
+      setUploadError("Por favor, selecciona un documento")
       return;
     }
 
@@ -46,7 +80,7 @@ export const ReportList = ( {studentId, reports = [], onReportUploaded}) => {
 
       // Capturamos los datos para enviar
       const dataToSend = new FormData();
-      dataToSend.append("title", title.trim() || "Informe de Evaluacion");
+      dataToSend.append("title", title.trim() || DEFAULT_REPORT_TITLE);
       dataToSend.append("attachmentDocument", file);
 
       //Solicitud a la API
@@ -54,22 +88,17 @@ export const ReportList = ( {studentId, reports = [], onReportUploaded}) => {
         headers: { "Content-Type": "multipart/form-data" }
       });
 
-      // Refrescamos las sesiones y reseteamos
-      onReportUploaded();
-      setShowUploadModal(false);
-      setTitle("");
-      setFile(null);
+      // Refrescamos la lista de informes y reseteamos
+      await onReportUploaded();
+      closeUploadModal();
 
     } catch (err) {
-      setUploadError(err.response?.data?.error ||
-        err.response?.data?.message ||
-        "Eroor al subir el informe"
-      )
+      setUploadError(getApiErrorMessage(err, "Error al subir el informe"));
     } finally {
       setIsUploading(false);
     }
   };
-  
+
 
   return (
     <div className="space-y-4">
@@ -110,7 +139,7 @@ export const ReportList = ( {studentId, reports = [], onReportUploaded}) => {
 
                 <div className="overflow-hidden">
                   <h4 className="font-semibold text-ink-muted text-xs truncate">
-                    {report.title || "Informe de Evaluación"}
+                    {report.title || DEFAULT_REPORT_TITLE}
                   </h4>
                   <p className="text-xs text-ink-faint mt-0.5">
                     {formatDate(report.date || report.createdAt)} · Documento adjunto
@@ -119,7 +148,7 @@ export const ReportList = ( {studentId, reports = [], onReportUploaded}) => {
               </div>
 
               {/* Lado derecho: Boton descargar */}
-              <a 
+              <a
               href={report.attachmentDocument}
               target="_blank"
               rel="noopener noreferrer"
@@ -136,78 +165,67 @@ export const ReportList = ( {studentId, reports = [], onReportUploaded}) => {
        )}
 
        {/* Modal para Subir Informe */}
-       {showUploadModal && (
-        <div className="fixed inset-0 bg-ink/30 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          {/* Contenedor del Modal */}
-          <div className="bg-white w-full max-w-md rounded-3xl shadow-xl overflow-hidden p-6 space-y-4">
-            {/* Cabecera del modal */}
-            <div className="flex items-center justify-between border-b border-[#EBE7DF] pb-3">
-              <h3 className="font-semibold text-ink text-base">Subir nuevo Informe</h3>
+       <Modal
+        isOpen={showUploadModal}
+        onClose={isUploading ? () => {} : closeUploadModal}
+        title="Subir nuevo Informe"
+        maxWidth="max-w-md"
+       >
+        {/* Estados de error */}
+        {uploadError && (
+          <div role="alert" className="bg-red-50 text-red-600 p-2.5 rounded-xl text-xs mt-4">
+            {uploadError}
+          </div>
+        )}
 
-              <button
-              onClick={ () => setShowUploadModal(false)}
-              className="text-slate-400 hover:text-slate-600 rounded-full p-1"
-              >
-                <IoClose size={18} />
-              </button>
-            </div>
-
-            {/* Estados de error */}
-            {uploadError && (
-              <div className="bg-red-50 text-red-600 p-2.5 rounded-xl text-xs">
-                {uploadError}
-              </div>
-            )}
-
-            {/* Formulario */}
-            <form onSubmit={handleUploadReport} className="space-y-4">
-              <div>
-                <label className="block text-[10px] font-bold text-ink-muted uppercase tracking-wider mb-1">Titulo del Informe</label>
-                {/* Campo de texto titulo */}
-                <input
-                  type="text"
-                  placeholder="Ej: Informe Inicial de Evaluación"
-                  value={title}
-                  onChange={(e) => setTitle(e.target.value)}
-                  className="w-full px-3 py-2 bg-white border border-[#EBE7DF] rounded-xl text-xs sm:text-sm text-ink focus:outline-none focus:border-[#529471]"
-                />
-              </div>
-
-              {/* Archivo adjunto */}
-              <div>
-                <label className="block text-[10px] font-bold text-ink-muted uppercase tracking-wider mb-1">
-                  Archivo (PDF o Documento) *
-                </label>
-                <input
-                  type="file"
-                  accept=".pdf,.doc,.docx,image/*"
-                  onChange={(e) => setFile(e.target.files[0])}
-                  className="w-full text-xs text-ink-muted file:mr-3 file:py-2 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-[#E2F2E9] file:text-[#2D6A4F] hover:file:bg-[#d0ebd9] cursor-pointer"
-                />
-              </div>
-
-              <div className="flex justify-end gap-2 pt-2">
-                <button
-                  type="button"
-                  onClick={() => setShowUploadModal(false)}
-                  className="px-4 py-2 text-xs font-semibold text-slate-500 hover:text-slate-700"
-                >
-                  Cancelar
-                </button>
-                <button
-                  type="submit"
-                  disabled={isUploading}
-                  className="px-4 py-2 bg-[#529471] hover:bg-[#437a5d] text-white rounded-xl text-xs font-semibold shadow-sm transition-all disabled:opacity-50"
-                >
-                  {isUploading ? "Subiendo..." : "Subir"}
-                </button>
-              </div>
-            </form>
-
+        {/* Formulario */}
+        <form onSubmit={handleUploadReport} className="space-y-4 mt-4">
+          <div>
+            <label htmlFor="report-title" className="block text-[10px] font-bold text-ink-muted uppercase tracking-wider mb-1">Titulo del Informe</label>
+            {/* Campo de texto titulo */}
+            <input
+              type="text"
+              id="report-title"
+              placeholder="Ej: Informe Inicial de Evaluación"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              className="w-full px-3 py-2 bg-white border border-[#EBE7DF] rounded-xl text-xs sm:text-sm text-ink focus:outline-none focus:border-[#529471]"
+            />
           </div>
 
-        </div>
-       )}
+          {/* Archivo adjunto */}
+          <div>
+            <label htmlFor="report-file" className="block text-[10px] font-bold text-ink-muted uppercase tracking-wider mb-1">
+              Archivo (PDF o Documento) *
+            </label>
+            <input
+              type="file"
+              id="report-file"
+              accept={ALLOWED_DOCUMENT_EXTENSIONS.join(",")}
+              onChange={handleFileChange}
+              className="w-full text-xs text-ink-muted file:mr-3 file:py-2 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-[#E2F2E9] file:text-[#2D6A4F] hover:file:bg-[#d0ebd9] cursor-pointer"
+            />
+          </div>
+
+          <div className="flex justify-end gap-2 pt-2">
+            <button
+              type="button"
+              onClick={closeUploadModal}
+              disabled={isUploading}
+              className="px-4 py-2 text-xs font-semibold text-slate-500 hover:text-slate-700"
+            >
+              Cancelar
+            </button>
+            <button
+              type="submit"
+              disabled={isUploading}
+              className="px-4 py-2 bg-[#529471] hover:bg-[#437a5d] text-white rounded-xl text-xs font-semibold shadow-sm transition-all disabled:opacity-50"
+            >
+              {isUploading ? "Subiendo..." : "Subir"}
+            </button>
+          </div>
+        </form>
+       </Modal>
     </div>
   )
 }

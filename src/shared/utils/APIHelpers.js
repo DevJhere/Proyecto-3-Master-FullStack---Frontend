@@ -38,7 +38,10 @@ const normalizeStudents = (responseData) => {
 const getApiErrorMessage = (error, defaultMessage = "Ha ocurrido un error inesperado.") => {
     //Si es nulo o undifined retorna un mensaje de error por defecto
     if(!error) return defaultMessage;
-    
+
+    //Sin respuesta del servidor (caído o sin conexión) el mensaje de axios es técnico y está en inglés: mostramos uno claro
+    if(error.isAxiosError && !error.response) return "No se pudo conectar con el servidor. Inténtalo de nuevo.";
+
     //Extraemos los datos
     const data = error?.response?.data || error?.data || error;
 

@@ -1,6 +1,6 @@
 /* Este hook nos ayuda a acceder al contexto de auth desde cualquier componente sin necesidad de importar el contexto y usar useContext() */
 import { useContext } from "react"
-import { AuthContext } from "../context/AuthContext";
+import { AuthContext } from "../context/authContextObject";
 
 export const useAuth = () => {
 

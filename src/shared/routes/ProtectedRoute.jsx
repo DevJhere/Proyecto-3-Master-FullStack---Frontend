@@ -6,14 +6,8 @@ import { useAuth } from "../hooks/useAuth";
 //COMPONENTE PARA CREAR RUTAS PROTEGIDAS
 export const ProtectedRoute = ({ children, allowedRoles = [] }) => {
 
-    //Llamamos a los estados
-    const { user, isAuthenticated, isLoading} = useAuth();
-
-    //Controlamos estado de carga
-    //Si no ha cargado, mostramos mensaje de carga
-    if(isLoading){
-        return <div className="text-center">Cargando estado de autenticación...</div>
-    }
+    //Llamamos a los estados. La sesión se lee de forma síncrona en AuthProvider, no hace falta estado de carga.
+    const { user, isAuthenticated } = useAuth();
 
     //Validamos si el usuario esta autenticado
     if(!isAuthenticated || !user){

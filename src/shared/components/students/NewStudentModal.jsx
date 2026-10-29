@@ -1,12 +1,40 @@
-import { useState } from "react";
-import { COURSES, DIAGNOSIS, TUTOR_RELATIONSHIP } from "../../utils/constants";
+import { useEffect, useState } from "react";
+import { COURSES, DIAGNOSIS, SIZE_FILES, TUTOR_RELATIONSHIP, USER_ROLES } from "../../utils/constants";
 import apiClient from "../../config/axios";
 import { MdAddPhotoAlternate } from "react-icons/md";
 import { IoMdArrowBack } from "react-icons/io";
 import { Modal } from "../ui/Modal";
+import { useAuth } from "../../hooks/useAuth";
 import { getApiErrorMessage } from "../../utils/APIHelpers";
 
+//Límites que valida también el backend
+const MIN_AGE = 3;
+const MAX_AGE = 18;
+const PHONE_REGEX = /^\d{9}$/;
+const EMAIL_REGEX = /^\S+@\S+\.\S+$/;
+
+//Estilo común de los campos
+const INPUT_CLASS = "w-full px-4 py-3 bg-bg border border-border rounded-xl text-sm text-ink placeholder:text-ink-faint focus:outline-none focus:border-sage transition-colors";
+const LABEL_CLASS = "block text-xs font-bold uppercase tracking-wide text-ink-muted mb-1.5";
+
+const INITIAL_FORM = {
+    name: "",
+    age: "",
+    course: "",
+    diagnosis: "",
+    avatar: null, // Para la subida de imagen
+    nameTutor: "",
+    tutorRelationship: "Madre",
+    phoneNumberTutor: "",
+    emailTutor: "",
+    pedagogoAsignado: "", // Solo lo elige un administrador
+};
+
 export const NewStudentModal = ({ isOpen, onClose, onStudentCreated }) => {
+
+    //Un administrador debe elegir a qué pedagogo se asigna el alumno; un pedagogo se asigna el alumno a sí mismo
+    const { user } = useAuth();
+    const isAdmin = user?.rol === USER_ROLES.ADMIN;
 
     /* Control de paso 1 y 2 */
     const [step, setStep] = useState(1); //Por defecto en 1
@@ -14,20 +42,32 @@ export const NewStudentModal = ({ isOpen, onClose, onStudentCreated }) => {
     const [error, setError] = useState("");
 
     /* Estados del formulario*/
-    const [formData, setFormData] = useState({
-        name: "",
-        age: "",
-        course: "",
-        diagnosis: "",
-        avatar: null, // Para la subida de imagen
-        nameTutor: "",
-        tutorRelationship: "Madre",
-        phoneNumberTutor: "",
-        emailTutor: "",
-    })
+    const [formData, setFormData] = useState(INITIAL_FORM);
 
     // Estado de preview de imagen Avatar
     const [avatarPreview, setAvatarPreview] = useState(null);
+
+    //Lista de pedagogos disponibles para asignar (solo se carga para administradores)
+    const [pedagogos, setPedagogos] = useState([]);
+
+    useEffect(() => {
+        if (!isOpen || !isAdmin) return;
+
+        let cancelled = false;
+
+        apiClient.get("/users")
+            .then((response) => {
+                if (cancelled) return;
+                const users = response.data?.users || [];
+                setPedagogos(users.filter((u) => u.rol === USER_ROLES.PEDAGOGO));
+            })
+            .catch((err) => {
+                if (cancelled) return;
+                setError(getApiErrorMessage(err, "No se pudo cargar la lista de pedagogos."));
+            });
+
+        return () => { cancelled = true; };
+    }, [isOpen, isAdmin]);
 
     //Funcion para controlar los inputs del formulario
     const handleChange = (e) => {
@@ -41,10 +81,21 @@ export const NewStudentModal = ({ isOpen, onClose, onStudentCreated }) => {
     // Función para pasar al paso 2
     const handleNext = (e) => {
         // Evitamos que el furmulario se enví de forma natica
-        e.preventDefault();
+        e?.preventDefault();
         //Validmos los datos del paso 1
         if (!formData.name.trim() || !formData.course || !formData.age || !formData.diagnosis) {
             setError("Por favor, debe rellenar los campos obligatorios.")
+            return;
+        }
+
+        const age = Number(formData.age);
+        if (!Number.isInteger(age) || age < MIN_AGE || age > MAX_AGE) {
+            setError(`La edad debe estar entre ${MIN_AGE} y ${MAX_AGE} años.`);
+            return;
+        }
+
+        if (isAdmin && !formData.pedagogoAsignado) {
+            setError("Debes asignar un pedagogo al alumno.");
             return;
         }
 
@@ -55,11 +106,23 @@ export const NewStudentModal = ({ isOpen, onClose, onStudentCreated }) => {
 
     //Función para manejar el envió de datos del formulario
     const handleSubmit = async (e) => {
-        e.preventDefault();
+        e?.preventDefault();
 
         //Validamos los datos del paso 2
         if (!formData.nameTutor.trim() || !formData.emailTutor.trim() || !formData.phoneNumberTutor.trim() || !formData.tutorRelationship) {
             setError("Por favor, debe rellenar los campos obligatorios.")
+            return;
+        }
+
+        //El backend exige 9 dígitos: aceptamos que el usuario escriba espacios o guiones (6XX XXX XXX)
+        const phone = formData.phoneNumberTutor.replace(/[\s-]/g, "");
+        if (!PHONE_REGEX.test(phone)) {
+            setError("El teléfono debe tener 9 dígitos.");
+            return;
+        }
+
+        if (!EMAIL_REGEX.test(formData.emailTutor.trim())) {
+            setError("El correo electrónico del tutor no es válido.");
             return;
         }
 
@@ -79,7 +142,9 @@ export const NewStudentModal = ({ isOpen, onClose, onStudentCreated }) => {
                 }
             });
 
-            // Si subimos imagen usaremos FormData, si no, enviamos JSON
+            //Enviamos el teléfono ya normalizado
+            dataToSend.set("phoneNumberTutor", phone);
+
             // POST a /students
             await apiClient.post("/students", dataToSend, {
                 //Subida de archivos
@@ -90,7 +155,7 @@ export const NewStudentModal = ({ isOpen, onClose, onStudentCreated }) => {
 
             //Avisamos a Students.jsx para refrescar la lista de Alumnos
             onStudentCreated()
-            handleClose(); //Cerramos el modal    
+            handleClose(); //Cerramos el modal
 
         } catch (err) {
             setError(getApiErrorMessage(err, "Error al crear el alumno"));
@@ -103,12 +168,23 @@ export const NewStudentModal = ({ isOpen, onClose, onStudentCreated }) => {
     //Función para capturar el archivo
     const handleAvatarChange = (e) => {
 
-        //Validamos el tipo de imagen
+        //Validamos el tipo y el tamaño de la imagen (el backend rechaza más de 5MB)
         const file = e.target.files[0];
-        if (file) {
-            setFormData((prev) => ({ ...prev, avatar: file }));
-            setAvatarPreview(URL.createObjectURL(file));
+        if (!file) return;
+
+        if (!file.type.startsWith("image/")) {
+            setError("El archivo debe ser una imagen (PNG o JPG).");
+            return;
         }
+
+        if (file.size > SIZE_FILES.MAX_SIZE_5MB) {
+            setError("La imagen no puede superar los 5MB.");
+            return;
+        }
+
+        setError("");
+        setFormData((prev) => ({ ...prev, avatar: file }));
+        setAvatarPreview(URL.createObjectURL(file));
     };
 
     // Función para seleccionar los tags de diagnóstico
@@ -121,17 +197,7 @@ export const NewStudentModal = ({ isOpen, onClose, onStudentCreated }) => {
         onClose(); //Cerrar el modal llamando a la función padre
         //Limpieza de estado interno del modal
         setStep(1);
-        setFormData({
-            name: "",
-            age: "",
-            course: "",
-            diagnosis: "",
-            avatar: null,
-            nameTutor: "",
-            tutorRelationship: "Madre",
-            phoneNumberTutor: "",
-            emailTutor: "",
-        });
+        setFormData(INITIAL_FORM);
         setAvatarPreview(null); //Limpiamos la preview de la foto
         setError(""); //Limpiamos cualquier error
         setIsSubmitting(false); //Reseteamos el estado de envío
@@ -145,11 +211,11 @@ export const NewStudentModal = ({ isOpen, onClose, onStudentCreated }) => {
             subtitle={`Paso ${step} de 2`}
             maxWidth="max-w-lg"
         >
-            {/* Formulario */}
-            <form onSubmit={handleSubmit} className="mt-4 space-y-4">
+            {/* Formulario. Enter valida el paso en el que se encuentra el usuario */}
+            <form onSubmit={step === 1 ? handleNext : handleSubmit} noValidate className="mt-4 space-y-4">
                 {/* Mostrar error */}
                 {error && (
-                    <div className="w-full bg-red-50 border border-red-200 rounded-2xl p-3 text-center text-red-700 text-xs mb-4">
+                    <div role="alert" className="w-full bg-red-50 border border-red-200 rounded-2xl p-3 text-center text-red-700 text-xs mb-4">
                         {error}
                     </div>
                 )}
@@ -171,8 +237,8 @@ export const NewStudentModal = ({ isOpen, onClose, onStudentCreated }) => {
                             </div>
 
                             <div>
-                                <p className="text-xs font-600 text-ink mb-1">Foto del alumno</p>
-                                <label className="mt-1.5 text-xs text-sage font-600 hover:underline cursor-pointer">
+                                <p className="text-xs font-semibold text-ink mb-1">Foto del alumno</p>
+                                <label className="mt-1.5 text-xs text-sage font-semibold hover:underline cursor-pointer">
                                     Seleccionar imagen
                                     <input
                                         type="file"
@@ -187,40 +253,43 @@ export const NewStudentModal = ({ isOpen, onClose, onStudentCreated }) => {
 
                         {/* Nombre Completo */}
                         <div>
-                            <label className="block text-xs font-700 uppercase tracking-wide text-ink-muted mb-1.5">Nombre Completo *</label>
+                            <label htmlFor="student-name" className={LABEL_CLASS}>Nombre Completo *</label>
                             <input
                                 type="text"
+                                id="student-name"
                                 name="name"
                                 value={formData.name}
                                 onChange={handleChange}
                                 placeholder="Ej: Lucía Navarro Martinéz"
-                                className="w-full px-4 py-3 bg-bg border border-border rounded-xl text-sm text-ink placeholder:text-ink-faint focus:outline-none focus:border-sage transition-colors" />
+                                className={INPUT_CLASS} />
                         </div>
 
                         {/* Edad y Curos en dos Columnas */}
                         <div className="grid grid-cols-2 gap-4">
                             <div>
-                                <label className="block text-xs font-700 uppercase tracking-wide text-ink-muted mb-1.5">Edad *</label>
+                                <label htmlFor="student-age" className={LABEL_CLASS}>Edad *</label>
                                 <input
                                     type="number"
+                                    id="student-age"
                                     name="age"
                                     placeholder="Ej: 9"
-                                    min={3}
-                                    max={18}
+                                    min={MIN_AGE}
+                                    max={MAX_AGE}
                                     value={formData.age}
                                     onChange={handleChange}
-                                    className="w-full px-4 py-3 bg-bg border border-border rounded-xl text-sm text-ink placeholder:text-ink-faint focus:outline-none focus:border-sage transition-colors"
+                                    className={INPUT_CLASS}
 
                                 />
                             </div>
 
                             <div>
-                                <label className="block text-xs font-700 uppercase tracking-wide text-ink-muted mb-1.5">Curso *</label>
+                                <label htmlFor="student-course" className={LABEL_CLASS}>Curso *</label>
                                 <select
+                                    id="student-course"
                                     name="course"
                                     value={formData.course}
                                     onChange={handleChange}
-                                    className="w-full px-4 py-3 bg-bg border border-border rounded-xl text-sm text-ink placeholder:text-ink-faint focus:outline-none focus:border-sage transition-colors"
+                                    className={INPUT_CLASS}
                                 >
                                     <option value="">Seleccionar</option>
                                     {/*  Mapeamos los cursos que provienen de la base de datos */}
@@ -236,17 +305,39 @@ export const NewStudentModal = ({ isOpen, onClose, onStudentCreated }) => {
                             </div>
                         </div>
 
+                        {/* Pedagogo asignado: solo lo elige el administrador */}
+                        {isAdmin && (
+                            <div>
+                                <label htmlFor="student-pedagogo" className={LABEL_CLASS}>Pedagogo asignado *</label>
+                                <select
+                                    id="student-pedagogo"
+                                    name="pedagogoAsignado"
+                                    value={formData.pedagogoAsignado}
+                                    onChange={handleChange}
+                                    className={INPUT_CLASS}
+                                >
+                                    <option value="">Seleccionar pedagogo</option>
+                                    {pedagogos.map((pedagogo) => (
+                                        <option key={pedagogo._id} value={pedagogo._id}>
+                                            {pedagogo.name} · {pedagogo.specialization}
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+                        )}
+
                         {/* Diagnostico */}
-                        <div>
-                            <label className="block text-xs font-700 uppercase tracking-wide text-ink-muted mb-1.5">Área de intervención principal</label>
+                        <div role="group" aria-labelledby="student-diagnosis-label">
+                            <p id="student-diagnosis-label" className={LABEL_CLASS}>Área de intervención principal *</p>
                             <div className="grid grid-cols-2 gap-2 mt-2">
                                 <div className="flex flex-wrap gap-2 col-span-2">
                                     {Object.entries(DIAGNOSIS).map(([key, value]) => (
                                         <button
                                             key={key}
                                             type="button"
+                                            aria-pressed={formData.diagnosis === value}
                                             onClick={() => handleTagClick('diagnosis', value)}
-                                            className={`px-3 py-1.5 rounded-full text-xs font-600 border transition-all
+                                            className={`px-3 py-1.5 rounded-full text-xs font-semibold border transition-all
                                         ${formData.diagnosis === value
                                                     ? "bg-sage text-white border-sage"
                                                     : "bg-white text-ink-muted border-border hover:border-sage"
@@ -266,25 +357,27 @@ export const NewStudentModal = ({ isOpen, onClose, onStudentCreated }) => {
                     <div className="space-y-4">
                         {/* Nombre del tutor legal */}
                         <div>
-                            <label className="block text-xs font-700 uppercase tracking-wide text-ink-muted mb-1.5">Nombre del tutor/a legal *</label>
+                            <label htmlFor="student-nameTutor" className={LABEL_CLASS}>Nombre del tutor/a legal *</label>
                             <input
                                 type="text"
+                                id="student-nameTutor"
                                 name="nameTutor"
                                 value={formData.nameTutor}
                                 onChange={handleChange}
                                 placeholder="Ej: Carmen Gómez Santos"
-                                className="w-full px-4 py-3 bg-bg border border-border rounded-xl text-sm text-ink placeholder:text-ink-faint focus:outline-none focus:border-sage transition-colors"
+                                className={INPUT_CLASS}
                             />
                         </div>
 
                         <div>
                             {/* Relación o parentesco */}
-                            <label className="block text-xs font-700 uppercase tracking-wide text-ink-muted mb-1.5" >Parentesco *</label>
+                            <label htmlFor="student-tutorRelationship" className={LABEL_CLASS} >Parentesco *</label>
                             <select
+                                id="student-tutorRelationship"
                                 name="tutorRelationship"
                                 value={formData.tutorRelationship}
                                 onChange={handleChange}
-                                className="w-full px-4 py-3 bg-bg border border-border rounded-xl text-sm text-ink placeholder:text-ink-faint focus:outline-none focus:border-sage transition-colors"
+                                className={INPUT_CLASS}
                             >
                                 {Object.entries(TUTOR_RELATIONSHIP).map(([key, value]) => (
                                     <option key={key} value={value}>
@@ -297,26 +390,28 @@ export const NewStudentModal = ({ isOpen, onClose, onStudentCreated }) => {
                         <div className="grid grid-cols-2 gap-4">
                             {/* Telefono y Email en 2 Col */}
                             <div>
-                                <label className="block text-xs font-700 uppercase tracking-wide text-ink-muted mb-1.5">Teléfono *</label>
+                                <label htmlFor="student-phone" className={LABEL_CLASS}>Teléfono *</label>
                                 <input
                                     type="tel"
+                                    id="student-phone"
                                     name="phoneNumberTutor"
                                     value={formData.phoneNumberTutor}
                                     onChange={handleChange}
                                     placeholder="6XX XXX XXX"
-                                    className="w-full px-4 py-3 bg-bg border border-border rounded-xl text-sm text-ink placeholder:text-ink-faint focus:outline-none focus:border-sage transition-colors"
+                                    className={INPUT_CLASS}
                                 />
                             </div>
                             {/* Email Tutor */}
                             <div>
-                                <label className="block text-xs font-700 uppercase tracking-wide text-ink-muted mb-1.5">Correo de Contacto *</label>
+                                <label htmlFor="student-emailTutor" className={LABEL_CLASS}>Correo de Contacto *</label>
                                 <input
                                     type="email"
+                                    id="student-emailTutor"
                                     name="emailTutor"
                                     value={formData.emailTutor}
                                     onChange={handleChange}
                                     placeholder="tutor@email.com"
-                                    className="w-full px-4 py-3 bg-bg border border-border rounded-xl text-sm text-ink placeholder:text-ink-faint focus:outline-none focus:border-sage transition-colors"
+                                    className={INPUT_CLASS}
                                 />
 
                             </div>
@@ -365,11 +460,5 @@ export const NewStudentModal = ({ isOpen, onClose, onStudentCreated }) => {
             </div>
 
         </Modal>
-
-
-
-
-
-
     );
 }

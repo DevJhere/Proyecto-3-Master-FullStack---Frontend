@@ -18,4 +18,14 @@ export default defineConfig([
       parserOptions: { ecmaFeatures: { jsx: true } },
     },
   },
+  {
+    // Archivos de configuración y utilidades de test que se ejecutan en Node
+    files: ['vitest.config.js', 'vite.config.js', 'src/test/**/*.{js,jsx}'],
+    languageOptions: { globals: { ...globals.browser, ...globals.node } },
+  },
+  {
+    // Los helpers de test exportan funciones y objetos además de componentes
+    files: ['src/test/**/*.{js,jsx}'],
+    rules: { 'react-refresh/only-export-components': 'off' },
+  },
 ])

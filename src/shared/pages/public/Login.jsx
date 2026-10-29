@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate, NavLink } from "react-router-dom";
+import { useNavigate, NavLink, Navigate } from "react-router-dom";
 import { useAuth } from "../../hooks/useAuth";
 import logo from '../../../assets/images/Raices y Alas Logo.png';
 import { FiMail } from "react-icons/fi";
@@ -15,7 +15,12 @@ export const Login = () => {
 
   //Hooks
   const navigate = useNavigate();
-  const { login } = useAuth();
+  const { login, isAuthenticated } = useAuth();
+
+  //Un usuario con sesión iniciada no necesita volver a identificarse
+  if (isAuthenticated) {
+    return <Navigate to="/dashboard" replace />;
+  }
 
   //Funcion para manejar cambios en los inputs
   const handleChange = (e) => {
@@ -60,7 +65,7 @@ export const Login = () => {
         setError(result.message); //Mostramos error
       }
 
-    } catch (err) {
+    } catch {
       setError("Error de autenticación");
     } finally {
       setIsSubmitting(false)

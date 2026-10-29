@@ -8,12 +8,14 @@ import { formatCapitalizedDate, formatTime, toLocalDateString } from "../../util
 import { getApiErrorMessage } from "../../utils/APIHelpers";
 
 
+//Duración fija de las sesiones agendadas desde el calendario (minutos)
+const SESSION_DURATION = 60;
+
 export const ScheduleSessionModal = ({ isOpen, onClose, selectedDate, sessions = [], students = [], onSessionCreated }) => { // Creamos Objeto Date con dia y hora seleccionado, Array de sesiones para calcular las franjas ocupadas y array de alumnos asignados
 
     // Definimos estados locales
     const [selectedStudentId, setSelectedStudentId] = useState("");
     const [notes, setNotes] = useState("");
-    const [duration, setDuration] = useState(60); //Duración fija de 60 min
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [error, setError] = useState("");
 
@@ -57,7 +59,7 @@ export const ScheduleSessionModal = ({ isOpen, onClose, selectedDate, sessions =
             await apiClient.post("/sessions", {
                 student: selectedStudentId,
                 date: selectedDate.toISOString(),
-                duration: Number(duration),
+                duration: SESSION_DURATION,
                 status: "Pendiente",
                 notes: notes.trim() || "Sesión de apoyo registrado"
             });
@@ -102,16 +104,16 @@ export const ScheduleSessionModal = ({ isOpen, onClose, selectedDate, sessions =
             <form onSubmit={handleSchedule} className="mt-4 space-y-4">
                 {/* Controlamos los errores */}
                 {error && (
-                    <div className="bg-red-50 text-red-600 p-2.5 rounded-xl text-xs font-medium">
+                    <div role="alert" className="bg-red-50 text-red-600 p-2.5 rounded-xl text-xs font-medium">
                         {error}
                     </div>
                 )}
 
                 {/* Selector de Alumno */}
-                <div>
-                    <label className="block text-[10px] font-bold text-ink-muted uppercase tracking-wider mb-1.5">
+                <div role="group" aria-labelledby="schedule-student-label">
+                    <p id="schedule-student-label" className="block text-[10px] font-bold text-ink-muted uppercase tracking-wider mb-1.5">
                         Alumno/a *
-                    </label>
+                    </p>
                     <div className="max-h-44 overflow-y-auto space-y-2 pr-1">
                         {students.length === 0 ? (
                             <p className="text-xs text-ink-muted p-3 bg-slate-50 rounded-xl text-center">No hay alumnos asignados</p>
@@ -119,10 +121,12 @@ export const ScheduleSessionModal = ({ isOpen, onClose, selectedDate, sessions =
                             students.map((student) => {
                                 const isSelected = selectedStudentId === student._id;
                                 return (
-                                    <div
+                                    <button
+                                        type="button"
                                         key={student._id}
+                                        aria-pressed={isSelected}
                                         onClick={() => setSelectedStudentId(student._id)}
-                                        className={`p-2.5 rounded-2xl border transition-all cursor-pointer flex items-center justify-between ${isSelected
+                                        className={`w-full text-left p-2.5 rounded-2xl border transition-all cursor-pointer flex items-center justify-between ${isSelected
                                             ? "border-[#529471] bg-[#F2F8F4] shadow-xs"
                                             : "border-[#EBE7DF] hover:border-slate-300 bg-white"
                                             }`}
@@ -141,7 +145,7 @@ export const ScheduleSessionModal = ({ isOpen, onClose, selectedDate, sessions =
                                                 <FiCheck size={12} />
                                             </div>
                                         )}
-                                    </div>
+                                    </button>
                                 );
                             })
                         )}
@@ -172,9 +176,11 @@ export const ScheduleSessionModal = ({ isOpen, onClose, selectedDate, sessions =
 
                 {/* Tipo de Sesión */}
                 <div>
-                    <label className="block text-[10px] font-bold text-ink-muted uppercase tracking-wider mb-1.5">Tipo de Sesión</label>
+                    <label htmlFor="schedule-notes" className="block text-[10px] font-bold text-ink-muted uppercase tracking-wider mb-1.5">Tipo de Sesión</label>
                     <input
                         type="text"
+                        id="schedule-notes"
+                        value={notes}
                         placeholder="p.ej. Lectura comprensiva, Cálculo mental..."
                         onChange={(e) => setNotes(e.target.value)}
                         className="w-full px-3.5 py-2.5 bg-[#FAF8F5] border border-[#EBE7DF] rounded-2xl text-xs sm:text-sm text-ink focus:outline-none focus:border-[#529471] focus:bg-white transition-all" />
@@ -182,13 +188,13 @@ export const ScheduleSessionModal = ({ isOpen, onClose, selectedDate, sessions =
 
                 {/* Duración */}
                 <div>
-                    <label className="block text-[10px] font-bold text-ink-muted uppercase tracking-wider mb-1.5">
+                    <p className="block text-[10px] font-bold text-ink-muted uppercase tracking-wider mb-1.5">
                         DURACIÓN
-                    </label>
+                    </p>
                     <div className="flex items-center">
                         <span className="px-4 py-2.5 bg-[#F2F8F4] text-[#2D6A4F] border border-[#529471]/30 rounded-xl text-xs font-semibold inline-flex items-center gap-2">
                             <span className="w-2 h-2 rounded-full bg-[#529471]" />
-                            <span>60 minutos</span>
+                            <span>{SESSION_DURATION} minutos</span>
                         </span>
                     </div>
                 </div>

@@ -1,43 +1,74 @@
 /* Contexto de Autenticación */
-import { useEffect } from "react";
-import { createContext, useState } from "react";
-import apiClient from "../config/axios";
+import { useEffect, useState } from "react";
+import apiClient, { setUnauthorizedHandler } from "../config/axios";
+import { AuthContext } from "./authContextObject";
 
+//Sesión vacía - Usuario sin autenticar
+const EMPTY_SESSION = { token: null, user: null };
 
-//Creamos el contexto de auth
-export const AuthContext = createContext();
+const clearStoredSession = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+};
+
+//Recuperamos la sesión guardada. Si los datos están corruptos la descartamos para no dejar la app en blanco.
+const loadStoredSession = () => {
+    const token = localStorage.getItem("token");
+    const storedUser = localStorage.getItem("user");
+
+    if (!token || !storedUser) return EMPTY_SESSION;
+
+    try {
+        const user = JSON.parse(storedUser);
+
+        if (!user || typeof user !== "object") throw new Error("Usuario guardado inválido");
+
+        return { token, user };
+    } catch {
+        clearStoredSession();
+        return EMPTY_SESSION;
+    }
+};
 
 //Creamos el provide para poder acceder a los datos
 export const AuthProvider = ({children}) =>{
 
-    //1. Definimos estados globales
-    const [ user, setUser] = useState(null);
-    const [ token, setToken] = useState(localStorage.getItem('token'));
-    const [ isLoading, setIsLoading] = useState(true);
+    //1. Definimos el estado global. Se lee de forma síncrona, así al recargar la página no hay un instante sin sesión que redirija a login.
+    const [ session, setSession ] = useState(loadStoredSession);
+    const { user, token } = session;
 
-    //2. Cargamos - Persitimos la sesion
+    //2. Si la API responde 401 (token caducado o inválido) cerramos la sesión sin recargar la página: ProtectedRoute redirige a /login
     useEffect( () => {
+        setUnauthorizedHandler( () => setSession(EMPTY_SESSION));
 
-        //Verificamos que existe token y user en localstorage
-        const tokenStorage = localStorage.getItem('token');
-        const userStorage = localStorage.getItem('user');
-        
-        if(tokenStorage && userStorage){
-            setToken(tokenStorage);
-            setUser(JSON.parse(userStorage));
-        }
-
-        //Si pasa el filtro cambiamos estado isLoading a false
-        setIsLoading(false); //Evitamos que al recargar la página redirija a login
+        return () => setUnauthorizedHandler(null);
     }, []);
 
+    //3. Con sesión guardada, refrescamos los datos del usuario desde el servidor (el rol o el nombre pueden haber cambiado desde el último acceso)
+    useEffect( () => {
+        if(!token) return;
+
+        let cancelled = false;
+
+        apiClient.get("/auth/me")
+            .then( (response) => {
+                if(cancelled) return;
+
+                localStorage.setItem("user", JSON.stringify(response.data));
+                setSession( (prev) => prev.token ? { ...prev, user: response.data } : prev);
+            })
+            //Si falla por red mantenemos los datos guardados; si es un 401 ya lo gestiona el interceptor
+            .catch( () => {});
+
+        return () => { cancelled = true; };
+    }, [token]);
+
     /*----------- Funciones Principales de inicio de sesion y cierre de sesion  ----------*/
-    
+
     const login = async (data) => {
         try{
 
             //Recibimos respuesta del servidor. Token y datos de usuario.
-            //Credenciales: Include permite el envio de cookies, para mantener sesion iniciada.
             const response = await apiClient.post("/auth/login", data);
 
             //Procesamos la respuesta
@@ -48,11 +79,10 @@ export const AuthProvider = ({children}) =>{
             localStorage.setItem("user",JSON.stringify(result.user));
 
             //Actualizamos estado
-            setToken(result.token);
-            setUser(result.user);
+            setSession({ token: result.token, user: result.user });
 
            return {success: true, message: "Inicio de sesión exitoso"};
-            
+
         }catch(err){
             const errorMessage = err.response?.data?.error ||err.response?.data?.message || "Email o contraseña incorrectos.";
 
@@ -61,20 +91,18 @@ export const AuthProvider = ({children}) =>{
     };
 
     const logout = async () => {
-        
+
         //Eliminamos token y user del localstorage
-        localStorage.removeItem("token");
-        localStorage.removeItem("user");
+        clearStoredSession();
 
         //Actualizamos estado - redirecciona a /login automaticamente
-        setToken(null);
-        setUser(null);
+        setSession(EMPTY_SESSION);
     };
 
     // Función para actualizar datos de usuario en memoria y en LocalStorage
-    const updateUser = (updateUser) => {
-        setUser(updateUser);
-        localStorage.setItem("user", JSON.stringify(updateUser))
+    const updateUser = (updatedUser) => {
+        setSession( (prev) => ({ ...prev, user: updatedUser }));
+        localStorage.setItem("user", JSON.stringify(updatedUser))
     };
 
     //Estado global
@@ -82,9 +110,8 @@ export const AuthProvider = ({children}) =>{
         user,
         token,
         isAuthenticated: !!user,
-        isLoading,
         login,
-        logout, 
+        logout,
         updateUser // exportamos la funcion updateUser
     };
 

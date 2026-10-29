@@ -1,6 +1,17 @@
 /* CONFIGURACIÓN DE AXIOS - cliente HTTP centralizado */
 import axios from "axios";
 
+//Qué hacer cuando la API responde 401 (sesión caducada). Por defecto vuelve al login recargando la página;
+//el AuthProvider lo sustituye por un cierre de sesión sin recarga.
+const redirectToLogin = () => {
+  window.location.href = "/login";
+};
+let onUnauthorized = redirectToLogin;
+
+export const setUnauthorizedHandler = (handler) => {
+  onUnauthorized = handler || redirectToLogin;
+};
+
 //1. Instancia de axios - CONFIGURACIÓN BASE
 const apiClient = axios.create({
   baseURL: import.meta.env.VITE_API_URL, //URL base del backend
@@ -32,12 +43,11 @@ apiClient.interceptors.response.use(
     const status = error.response?.status;
     const isLoginRequest = error.config?.url?.includes("/auth/login");
 
-    // Si es 401 y NO es el intento de login, limpiamos sesión y redirigimos
+    // Si es 401 y NO es el intento de login, limpiamos sesión y volvemos al login
     if (status === 401 && !isLoginRequest) {
       localStorage.removeItem("token");
       localStorage.removeItem("user");
-      // Redirigimos al usuario a la pantalla de inicio
-      window.location.href = "/";
+      onUnauthorized();
     }
 
     return Promise.reject(error);
@@ -47,6 +57,3 @@ apiClient.interceptors.response.use(
 
 //Exportamos
 export default apiClient;
-
-
-

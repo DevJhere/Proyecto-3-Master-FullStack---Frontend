@@ -30,7 +30,6 @@ export const Dashboard = () => {
   useEffect(() => {
     const fetchDashboardData = async () => {
       try {
-        setIsLoading(true);
         //Peticion a endpoint
         const response = await apiClient("/sessions");
 
@@ -58,16 +57,19 @@ export const Dashboard = () => {
       ? session.pedagogoAsignado?._id
       : session.pedagogoAsignado;
     return pedagogoId === (user?._id || user?.id);
-  });
+  }).sort((a, b) => new Date(a.date || a.fecha) - new Date(b.date || b.fecha)); //Ordenadas por hora
 
-  //TODO - Sesiones de este mes
+  //El saludo solo cuenta las que todavía están pendientes (no las canceladas ni las ya completadas)
+  const pendingTodayCount = myTodaySessions.filter((session) => session.status === "Pendiente").length;
+
+  //Sesiones de este mes
   const currentMonth = new Date().getMonth() + 1; // el + 1 es para que el mes de enero no empiece desde el 0
   const currentYear = new Date().getFullYear(); // el getFullYear es para que el año no empiece desde el 2000
 
-  //Filtramos las sesiones por mes y año
+  //Filtramos las sesiones por mes y año. Las canceladas no cuentan como programadas.
   const sessionsThisMounthCount = sessions.filter(session => {
     const sessionsDate = new Date(session.date || session.fecha);
-    return sessionsDate.getMonth() + 1 === currentMonth && sessionsDate.getFullYear() === currentYear
+    return session.status !== "Cancelado" && sessionsDate.getMonth() + 1 === currentMonth && sessionsDate.getFullYear() === currentYear
   }).length;
 
   /* Alumnos Activos y sesiones completada */
@@ -81,7 +83,6 @@ export const Dashboard = () => {
   useEffect(() => {
     const fetchStudentsData = async () => {
       try {
-        setIsLoadingStudents(true);
         //Peticion a endpoint
         const response = await apiClient("/students");
         setStudents(normalizeStudents(response));
@@ -104,24 +105,31 @@ export const Dashboard = () => {
   return (
     <div className="flex-1 overflow-y-auto">
       {/* Contenedor */}
-      <div className="max-w-8xl mx-auto px-8 py-6">
+      <div className="max-w-7xl mx-auto px-8 py-6">
 
         {/* Contendedor cabecera */}
         <div className="mb-10">
-          <p className="text-sm text-ink-faint font-500 mb-1">{dateTodayCap}</p>
+          <p className="text-sm text-ink-faint font-medium mb-1">{dateTodayCap}</p>
 
           {/* Titulo Saludo a Usuario */}
-          <h1 className="text-3xl tracking-wider font-500 text-ink leading-snug">
+          <h1 className="text-3xl tracking-wider font-medium text-ink leading-snug">
             Hola, {userNameCap}
           </h1>
-          <p className="text-ink-muted mt-1 text-sm mb-8">Tienes {" "}
-            <span className="font-600 text-sage">
-              {/* TODO. Agregar las sesiones almacenadas en la base de datos para hoy*/}
-              {myTodaySessions.length} sesión{myTodaySessions.length != 1 ? "es" : ""}{" "}
+          <p className="text-ink-muted mt-1 text-sm mb-8">Tienes{" "}
+            <span className="font-semibold text-sage">
+              {pendingTodayCount} {pendingTodayCount === 1 ? "sesión" : "sesiones"}{" "}
             </span>
-            pendientes para hoy.
+            pendiente{pendingTodayCount !== 1 ? "s" : ""} para hoy.
           </p>
         </div>
+
+        {/* Errores de carga: sin esto un fallo de la API parecería "no hay datos" */}
+        {(error || errorStudents) && (
+          <div role="alert" className="mb-6 bg-red-50 text-red-600 p-4 rounded-2xl border border-red-100 text-sm space-y-1">
+            {error && <p>{error}</p>}
+            {errorStudents && <p>{errorStudents}</p>}
+          </div>
+        )}
 
         {/* Contenedor TARJETAS KPI */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
@@ -157,7 +165,7 @@ export const Dashboard = () => {
         <div className="mb-10">
 
           <div className="flex items-baseline justify-between mb-4">
-            <h2 className="text-lg font-semibold tracking-wider text-ink-strong">
+            <h2 className="text-lg font-semibold tracking-wider text-ink">
               Sesiones de hoy
             </h2>
             <NavLink
@@ -167,7 +175,9 @@ export const Dashboard = () => {
           </div>
 
           {/* Card de Sesión */}
-          {myTodaySessions.length === 0 ? (
+          {isLoading ? (
+            <div className="text-center py-10 text-slate-400 text-sm">Cargando sesiones...</div>
+          ) : myTodaySessions.length === 0 ? (
             <div className="text-center py-10 bg-white rounded-3xl border border-dashed border-[#EBE7DF]">
               <p className="text-ink-muted hover:bg-slate-50 hover:text-slate-700">No hay sesiones programadas para hoy.</p>
             </div>
@@ -196,9 +206,11 @@ export const Dashboard = () => {
           </div>
 
           {/* Tarjetas de acceso rápido */}
-          {students.length === 0 ? (
+          {isLoadingStudents ? (
+            <div className="text-center py-8 text-slate-400 text-sm">Cargando alumnos...</div>
+          ) : students.length === 0 ? (
             <div className="text-center py-8 bg-white rounded-3xl border border-dashed border-[#EBE7DF]">
-              <p className="text-slate-400 text-sm">No tienes alumnos asigandos todavía.</p>
+              <p className="text-slate-400 text-sm">No tienes alumnos asignados todavía.</p>
             </div>
           ) : (
             // Grid de 3 columons que muestras hasta 6 pacientes/alumnos principales

@@ -1,11 +1,16 @@
 import { useState } from "react";
 import apiClient from "../../config/axios";
 import { FiClock, FiFileText } from "react-icons/fi";
+import { SIZE_FILES } from "../../utils/constants";
+import { getApiErrorMessage } from "../../utils/APIHelpers";
+
+//Formatos de documento que acepta el backend para adjuntar a una sesión
+const ALLOWED_DOCUMENT_EXTENSIONS = [".pdf", ".doc", ".docx", ".txt"];
 
 export const NewSessionForm = ({studentId, onClose, onSessionCreated}) => {
 
   //Estado envío de datos
-  const [ isSubmmitting, setIsSubmitting] = useState(false);
+  const [ isSubmitting, setIsSubmitting] = useState(false);
   const [ error, setError ] = useState("");
 
   // Inicializamos la fecha actual en formato YYYY-MM-DDTHH:mm para datetime-local
@@ -36,9 +41,22 @@ export const NewSessionForm = ({studentId, onClose, onSessionCreated}) => {
     const file = e.target.files[0]; // Accedemos al primer archivo seleccionado
 
     //Verificamos que se haya seleccionado un archivo
-    if(file) {
-        setFormData( (prev) => ({...prev, attachmentDocument: file}));
+    if(!file) return;
+
+    //Validamos formato y tamaño antes de enviarlo: el backend rechaza otros formatos y más de 20MB
+    const isAllowedFormat = ALLOWED_DOCUMENT_EXTENSIONS.some( (extension) => file.name.toLowerCase().endsWith(extension));
+    if(!isAllowedFormat) {
+        setError("El documento debe ser un PDF, Word (.doc, .docx) o de texto (.txt).");
+        return;
     }
+
+    if(file.size > SIZE_FILES.MAX_SIZE_20MB) {
+        setError("El documento no puede superar los 20MB.");
+        return;
+    }
+
+    setError("");
+    setFormData( (prev) => ({...prev, attachmentDocument: file}));
   };
 
   //Manejador del envió de datos
@@ -55,11 +73,14 @@ export const NewSessionForm = ({studentId, onClose, onSessionCreated}) => {
         setIsSubmitting(true);
         setError("");
 
+        //El campo datetime-local no lleva zona horaria ("2026-11-05T10:00"): lo convertimos a ISO (UTC) para que el servidor guarde la hora que eligió el usuario
+        const dateISO = new Date(formData.date).toISOString();
+
         //Si hay un archivo usamos ForDamta sino enviamos JSON
         if( formData.attachmentDocument){
             const dataToSend = new FormData();
             dataToSend.append("student", studentId);
-            dataToSend.append("date", formData.date);
+            dataToSend.append("date", dateISO);
             dataToSend.append("duration", formData.duration);
             dataToSend.append("notes", formData.notes);
             dataToSend.append("attachmentDocument", formData.attachmentDocument);
@@ -72,7 +93,7 @@ export const NewSessionForm = ({studentId, onClose, onSessionCreated}) => {
         } else {
             await apiClient.post("/sessions", {
                 student: studentId,
-                date: formData.date,
+                date: dateISO,
                 duration: Number(formData.duration), // Aseguramos que sea un número
                 status: formData.status,
                 notes: formData.notes, 
@@ -84,7 +105,7 @@ export const NewSessionForm = ({studentId, onClose, onSessionCreated}) => {
         onClose();
         
     } catch (err) {
-        setError(err.response?.data?.message || "Error al crear la sesión.")
+        setError(getApiErrorMessage(err, "Error al crear la sesión."))
     } finally {
         setIsSubmitting(false);
     }
@@ -99,7 +120,7 @@ export const NewSessionForm = ({studentId, onClose, onSessionCreated}) => {
 
         {/* Vision de errores */}
         {error && (
-            <div className="bg-red-50 text-red-600 p-3 rounded-xl text-xs">
+            <div role="alert" className="bg-red-50 text-red-600 p-3 rounded-xl text-xs">
                 {error}
             </div>
         )}
@@ -107,9 +128,10 @@ export const NewSessionForm = ({studentId, onClose, onSessionCreated}) => {
         {/* Fila 1: Fecha, Hora y Duración */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-                <label className="block text-[10px] font-bold text-ink-muted uppercase tracking-wider mb-1"> Fecha y hora *</label>
-                <input 
+                <label htmlFor="session-date" className="block text-[10px] font-bold text-ink-muted uppercase tracking-wider mb-1"> Fecha y hora *</label>
+                <input
                 type="datetime-local"
+                id="session-date"
                 name="date"
                 value={formData.date}
                 onChange={handleChange}
@@ -118,10 +140,11 @@ export const NewSessionForm = ({studentId, onClose, onSessionCreated}) => {
             </div>
 
             <div>
-                <label className="block text-[10px] font-bold text-ink-muted uppercase tracking-wider mb-1"> Duración (minutos)</label>
+                <label htmlFor="session-duration" className="block text-[10px] font-bold text-ink-muted uppercase tracking-wider mb-1"> Duración (minutos)</label>
                 <div className="relative">
                     <input
                     type="number"
+                    id="session-duration"
                     name="duration"
                     value={formData.duration}
                     onChange={handleChange}
@@ -136,9 +159,10 @@ export const NewSessionForm = ({studentId, onClose, onSessionCreated}) => {
 
         {/* Fila 3: Observaciones/ Notas */}
         <div>
-            <label className="block text-[10px] font-bold text-ink-muted uppercase tracking-wider mb-1">Notas de Intervención</label>
-            <textarea 
-            name="notes" 
+            <label htmlFor="session-notes" className="block text-[10px] font-bold text-ink-muted uppercase tracking-wider mb-1">Notas de Intervención</label>
+            <textarea
+            id="session-notes"
+            name="notes"
             rows={3}
             value={formData.notes}
             onChange={handleChange}
@@ -148,7 +172,7 @@ export const NewSessionForm = ({studentId, onClose, onSessionCreated}) => {
 
         {/* Fila 4: Archivo adjunto opcional */}
         <div>
-            <label className="block text-[10px] font-bold text-ink-muted uppercase tracking-wider mb-1">Documento Adjunto (Opcional) </label>
+            <p className="block text-[10px] font-bold text-ink-muted uppercase tracking-wider mb-1">Documento Adjunto (Opcional) </p>
 
             <label className="inline-flex items-center gap-2 px-3 py-2 bg-white border border-[#EBE7DF] hover:border-[#529471] rounded-xl text-xs text-slate-600 cursor-pointer transition-colors">
                 <FiFileText size={14} className="text-[#529471]" />
@@ -158,7 +182,7 @@ export const NewSessionForm = ({studentId, onClose, onSessionCreated}) => {
                 <input
                 type="file"
                 onChange={handleFileChange}
-                accept=".pdfm,.doc,.docx,image/*"
+                accept={ALLOWED_DOCUMENT_EXTENSIONS.join(",")}
                 className="hidden"
                 />
             </label>
@@ -168,10 +192,10 @@ export const NewSessionForm = ({studentId, onClose, onSessionCreated}) => {
         <div className="flex items-center gap-3 pt-2"> 
             <button
             type="submit"
-            disabled={isSubmmitting}
+            disabled={isSubmitting}
             className="px-5 py-2.5 bg-[#529471] hover:bg-[#437a5d] text-white rounded-xl text-xs sm:text-sm font-semibold shadow-sm transition-all cursor-pointer disabled:opacity-50"
             >
-                {isSubmmitting ? "Guardando..." : "Guardar Registro"}
+                {isSubmitting ? "Guardando..." : "Guardar Registro"}
             </button>
 
             <button

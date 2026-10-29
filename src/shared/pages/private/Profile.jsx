@@ -1,10 +1,12 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef } from "react";
 import { useAuth } from "../../hooks/useAuth";
 import apiClient from "../../config/axios";
 import { SPECIALIZATIONS, SIZE_FILES } from "../../utils/constants";
 import { getAvatarUrl } from "../../utils/HelperAvatar";
 import { FiCheck, FiAlertCircle } from "react-icons/fi";
 
+
+const ALLOWED_IMAGE_TYPES = ["image/png", "image/jpeg", "image/webp"];
 
 export const Profile = () => {
 
@@ -27,23 +29,24 @@ export const Profile = () => {
   const [ successMsg, setSuccessMsg] = useState("");
   const [errorMsg, setErrorMsg] = useState("");
 
-  //Cargamos datos actuales del usuario al iniciar el componente
-  useEffect( () =>{
+  //Cargamos los datos actuales del usuario y los volvemos a cargar si cambian (p. ej. si el servidor devuelve datos distintos a los guardados).
+  //Se hace durante el render y no en un efecto para evitar un render intermedio con el formulario vacío.
+  //Comparamos los datos y no el objeto: el AuthProvider refresca el usuario al arrancar y, aunque los datos sean iguales, el objeto es nuevo;
+  //reiniciar el formulario en ese caso borraría lo que el usuario esté escribiendo.
+  const userKey = user ? [user._id, user.name, user.email, user.specialization, user.avatar].join("|") : null;
+  const [ syncedKey, setSyncedKey ] = useState(null);
 
-    //Verificamos que el usuario existe
-    if(user){
-      setFormData({
-        name: user.name || "",
-        email: user.email || "",
-        specialization: user.specialization || "",
-      });
-      
-      //Si pasa la primera validación, cargamos la previsualización de la imagen
-      if(user.avatar && !user.avatar.includes("profile-default")){
-        setAvatarPreview(getAvatarUrl(user.avatar));
-      }
-    }
-  }, [user])
+  if(user && userKey !== syncedKey){
+    setSyncedKey(userKey);
+    setFormData({
+      name: user.name || "",
+      email: user.email || "",
+      specialization: user.specialization || "",
+    });
+
+    //Cargamos la previsualización de la imagen salvo que sea la de por defecto
+    setAvatarPreview(user.avatar && !user.avatar.includes("profile-default") ? getAvatarUrl(user.avatar) : null);
+  }
 
   //Manejador de cambios en inputs
   const handleChange = (e) => {
@@ -57,6 +60,11 @@ export const Profile = () => {
   const handleFileChange = async (e) =>{
     const file = e.target.files[0];
     if(!file) return;
+
+    if(!ALLOWED_IMAGE_TYPES.includes(file.type)){
+      setErrorMsg("La imagen debe ser JPG, PNG o WebP.");
+      return;
+    }
 
     if(file.size > SIZE_FILES.MAX_SIZE_5MB){
       setErrorMsg("La imagen no puede superar los 5MB");
@@ -147,18 +155,18 @@ export const Profile = () => {
             Configuración de perfil
           </h1>
           <p className="text-xs sm:text-sm text-ink-muted mt-1">
-            Mantén actualizados tus datos profesionales y la imagen que verás en Vinculum.
+            Mantén actualizados tus datos profesionales y la imagen que verás en Raíces y Alas.
           </p>
         </div>
         {/* MENSAJES DE FEEDBACK */}
         {successMsg && (
-          <div className="p-4 bg-[#EBF7EE] text-[#2D6A4F] rounded-2xl border border-[#D5EEDD] flex items-center gap-2 text-xs font-semibold animate-in fade-in">
+          <div role="status" className="p-4 bg-[#EBF7EE] text-[#2D6A4F] rounded-2xl border border-[#D5EEDD] flex items-center gap-2 text-xs font-semibold">
             <FiCheck size={16} />
             <span>{successMsg}</span>
           </div>
         )}
         {errorMsg && (
-          <div className="p-4 bg-red-50 text-red-600 rounded-2xl border border-red-200 flex items-center gap-2 text-xs font-semibold animate-in fade-in">
+          <div role="alert" className="p-4 bg-red-50 text-red-600 rounded-2xl border border-red-200 flex items-center gap-2 text-xs font-semibold">
             <FiAlertCircle size={16} />
             <span>{errorMsg}</span>
           </div>
@@ -189,6 +197,7 @@ export const Profile = () => {
               <div>
                 <input
                   type="file"
+                  aria-label="Foto de perfil"
                   ref={fileInputRef}
                   onChange={handleFileChange}
                   accept="image/png, image/jpeg, image/webp"
@@ -220,11 +229,12 @@ export const Profile = () => {
             <div className="pt-6 space-y-5">
               {/* Nombre Completo */}
               <div>
-                <label className="block text-[11px] font-bold text-ink-muted uppercase tracking-wider mb-2">
+                <label htmlFor="profile-name" className="block text-[11px] font-bold text-ink-muted uppercase tracking-wider mb-2">
                   NOMBRE COMPLETO
                 </label>
                 <input
                   type="text"
+                  id="profile-name"
                   name="name"
                   value={formData.name}
                   onChange={handleChange}
@@ -236,10 +246,11 @@ export const Profile = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                 {/* Especialidad */}
                 <div>
-                  <label className="block text-[11px] font-bold text-ink-muted uppercase tracking-wider mb-2">
+                  <label htmlFor="profile-specialization" className="block text-[11px] font-bold text-ink-muted uppercase tracking-wider mb-2">
                     ESPECIALIDAD
                   </label>
                   <select
+                    id="profile-specialization"
                     name="specialization"
                     value={formData.specialization}
                     onChange={handleChange}
@@ -255,11 +266,12 @@ export const Profile = () => {
                 </div>
                 {/* Correo Electrónico (Solo lectura) */}
                 <div>
-                  <label className="block text-[11px] font-bold text-ink-muted uppercase tracking-wider mb-2">
+                  <label htmlFor="profile-email" className="block text-[11px] font-bold text-ink-muted uppercase tracking-wider mb-2">
                     CORREO ELECTRÓNICO
                   </label>
                   <input
                     type="email"
+                    id="profile-email"
                     name="email"
                     value={formData.email}
                     disabled

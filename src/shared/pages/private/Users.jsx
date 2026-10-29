@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { FiUsers, FiShield, FiBriefcase, FiPlus, FiSearch } from "react-icons/fi";
 import { LuSearchX } from "react-icons/lu";
 import apiClient from "../../config/axios";
@@ -7,15 +7,17 @@ import { UserCard } from "../../components/users/UserCard";
 import { NewUserModal } from "../../components/users/NewUserModal";
 import { EditUserModal } from "../../components/users/EditUserModal";
 import { DeleteUserModal } from "../../components/users/DeleteUserModal";
+import { getApiErrorMessage } from "../../utils/APIHelpers";
 
 export const Users = () => {
-  const { user: currentUser } = useAuth();
+  const { user: currentUser, updateUser } = useAuth();
 
   // Estados de datos
   const [users, setUsers] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
   const [successToast, setSuccessToast] = useState("");
+  const [warning, setWarning] = useState("");
 
   // Estados de filtrado y búsqueda
   const [searchTerm, setSearchTerm] = useState("");
@@ -26,28 +28,36 @@ export const Users = () => {
   const [userToEdit, setUserToEdit] = useState(null);
   const [userToDelete, setUserToDelete] = useState(null);
 
-  // Carga inicial de usuarios
+  // Carga de usuarios. También se usa para refrescar la lista tras crear un miembro, sin volver a mostrar el estado de carga.
   const fetchUsers = async () => {
     try {
-      setIsLoading(true);
-      setError("");
       const res = await apiClient.get("/users");
       setUsers(res.data?.users || []);
+      setError("");
     } catch (err) {
-      setError(err.response?.data?.message || "Error al cargar la lista de usuarios.");
+      setError(getApiErrorMessage(err, "Error al cargar la lista de usuarios."));
     } finally {
       setIsLoading(false);
     }
   };
 
   useEffect(() => {
+    // Carga de datos al montar la página: el setState ocurre tras el await (no de forma síncrona), la regla no lo distingue al reutilizar la función para recargar.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchUsers();
   }, []);
 
-  // Helper para mostrar toast de éxito temporal
+  // Helper para mostrar toast de éxito temporal. Guardamos el temporizador para cancelarlo si se muestra otro toast o se sale de la página.
+  const toastTimer = useRef(null);
+
+  useEffect(() => {
+    return () => clearTimeout(toastTimer.current);
+  }, []);
+
   const showSuccess = (msg) => {
+    clearTimeout(toastTimer.current);
     setSuccessToast(msg);
-    setTimeout(() => {
+    toastTimer.current = setTimeout(() => {
       setSuccessToast("");
     }, 4000);
   };
@@ -75,8 +85,16 @@ export const Users = () => {
   }, [users, searchTerm, roleFilter]);
 
   // Callbacks de modales
-  const handleUserCreated = () => {
+  // Si el miembro se registró pero no se pudo asignar el rol de admin, lo avisamos en un banner (el modal ya se ha cerrado)
+  const handleUserCreated = ({ roleAssignmentFailed } = {}) => {
     fetchUsers();
+
+    if (roleAssignmentFailed) {
+      setWarning("El miembro se registró correctamente, pero no se pudo asignarle el rol de administrador. Edítalo para cambiar su rol.");
+      return;
+    }
+
+    setWarning("");
     showSuccess("Nuevo miembro del equipo registrado correctamente.");
   };
 
@@ -85,6 +103,12 @@ export const Users = () => {
     setUsers((prev) =>
       prev.map((user) => (user._id === updatedUser._id ? { ...user, ...updatedUser } : user))
     );
+
+    //Si el admin se ha editado a sí mismo, actualizamos también la sesión (menú lateral, permisos...)
+    if (updatedUser._id === currentUser?._id) {
+      updateUser({ ...currentUser, ...updatedUser });
+    }
+
     showSuccess("Datos del usuario actualizados correctamente.");
   };
 
@@ -100,7 +124,7 @@ export const Users = () => {
         {/* CABECERA PRINCIPAL */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
           <div>
-            <h1 className="text-3xl tracking-wider font-semibold text-ink-main leading-snug">
+            <h1 className="text-3xl tracking-wider font-semibold text-ink leading-snug">
               Gestión de Equipo
             </h1>
             <p className="text-sm text-ink-muted mt-1 tracking-wider leading-snug">
@@ -120,10 +144,11 @@ export const Users = () => {
 
         {/* TOAST DE ÉXITO */}
         {successToast && (
-          <div className="mb-6 p-4 bg-[#EEF7F2] border border-[#A8D4BB] text-[#2D6A4F] rounded-2xl text-xs font-semibold flex items-center justify-between animate-in fade-in slide-in-from-top-2">
+          <div role="status" className="mb-6 p-4 bg-[#EEF7F2] border border-[#A8D4BB] text-[#2D6A4F] rounded-2xl text-xs font-semibold flex items-center justify-between">
             <span>{successToast}</span>
             <button
               onClick={() => setSuccessToast("")}
+              aria-label="Cerrar aviso"
               className="text-[#2D6A4F] hover:text-[#1a3f2f] cursor-pointer"
             >
               ✕
@@ -131,9 +156,17 @@ export const Users = () => {
           </div>
         )}
 
+        {/* AVISO: acción completada solo en parte */}
+        {warning && (
+          <div role="alert" className="mb-6 p-4 bg-[#FFF8E6] border border-[#F2D98D] text-[#8A6100] rounded-2xl text-xs font-semibold flex items-center justify-between">
+            <span>{warning}</span>
+            <button type="button" onClick={() => setWarning("")} aria-label="Cerrar advertencia" className="cursor-pointer">✕</button>
+          </div>
+        )}
+
         {/* MENSAJE DE ERROR GLOBAL */}
         {error && (
-          <div className="mb-6 p-4 bg-red-50 border border-red-200 text-red-600 rounded-2xl text-xs font-semibold">
+          <div role="alert" className="mb-6 p-4 bg-red-50 border border-red-200 text-red-600 rounded-2xl text-xs font-semibold">
             {error}
           </div>
         )}
@@ -273,6 +306,7 @@ export const Users = () => {
 
         {/* MODAL EDITAR USUARIO */}
         <EditUserModal
+          key={userToEdit?._id}
           isOpen={!!userToEdit}
           onClose={() => setUserToEdit(null)}
           userToEdit={userToEdit}

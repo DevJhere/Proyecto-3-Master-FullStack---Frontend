@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import apiClient from "../../config/axios";
+import { getApiErrorMessage } from "../../utils/APIHelpers";
 import { GoCalendar } from "react-icons/go";
 import { FiClock, FiFileText } from "react-icons/fi";
 import { FiChevronDown } from "react-icons/fi";
@@ -11,6 +12,12 @@ export const SessionTimeline = ({ sessions = [], onSessionUpdated }) => {
   //Estados menú desplegable de estado está abierto y cuál está actualizándose
   const [openMenuId, setOpenMenuId] = useState(null);
   const [updatingId, setUpdatingId] = useState(null);
+
+  //Historial: la sesión más reciente primero (la API las devuelve de la más antigua a la más reciente)
+  const orderedSessions = useMemo(
+    () => [...sessions].sort((a, b) => new Date(b.date) - new Date(a.date)),
+    [sessions],
+  );
 
 
   // Formateador de fecha y hora
@@ -61,7 +68,7 @@ export const SessionTimeline = ({ sessions = [], onSessionUpdated }) => {
 
     } catch (error) {
       console.error("Error al actualizar estado:", error);
-      alert(error.response?.data?.message || "No se pudo actualizar el estado de la sesión")
+      alert(getApiErrorMessage(error, "No se pudo actualizar el estado de la sesión"))
     } finally {
       setUpdatingId(null);
       setOpenMenuId(null);
@@ -82,7 +89,7 @@ export const SessionTimeline = ({ sessions = [], onSessionUpdated }) => {
   }
   return (
     <div className="relative pl-6 sm:pl-8 space-y-6 before:absolute before:left-2.5 sm:before:left-3.5 before:top-4 before:bottom-4 before:w-0.5 before:bg-[#EBE7DF]">
-      {sessions.map((session, index) => {
+      {orderedSessions.map((session, index) => {
         const badge = getStatusBadge(session.status);
         const isOpen = openMenuId === session._id;
         const isUpdating = updatingId === session._id;

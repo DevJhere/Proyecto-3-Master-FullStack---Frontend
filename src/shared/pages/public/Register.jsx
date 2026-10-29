@@ -1,6 +1,7 @@
-import { useState } from "react";
-import { useNavigate, NavLink } from "react-router-dom";
+import { useEffect, useRef, useState } from "react";
+import { useNavigate, NavLink, Navigate } from "react-router-dom";
 import apiClient from "../../config/axios";
+import { useAuth } from "../../hooks/useAuth";
 import logo from '../../../assets/images/Raices y Alas Logo.png';
 import { FiUser } from "react-icons/fi";
 import { FiBriefcase } from "react-icons/fi";
@@ -9,6 +10,9 @@ import { SPECIALIZATIONS } from "../../utils/constants";
 import { PasswordField } from "../../components/ui/PasswordField";
 import { getApiErrorMessage } from "../../utils/APIHelpers";
 
+
+const MIN_PASSWORD_LENGTH = 6;
+const REDIRECT_DELAY_MS = 1500;
 
 export const Register = () => {
 
@@ -19,7 +23,6 @@ export const Register = () => {
     specialization: "",
     email: "",
     password: "",
-    rol: "pedagogo",
   });
 
   //Estado de errores
@@ -30,6 +33,18 @@ export const Register = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   // Hook navigate - Instanciamos para manejar la redireccion
   const navigate = useNavigate();
+  const { isAuthenticated } = useAuth();
+  //Temporizador de la redirección tras registrarse. Lo guardamos para cancelarlo si el componente se desmonta.
+  const redirectTimer = useRef(null);
+
+  useEffect(() => {
+    return () => clearTimeout(redirectTimer.current);
+  }, []);
+
+  //Un usuario con sesión iniciada no necesita crear cuenta
+  if (isAuthenticated) {
+    return <Navigate to="/dashboard" replace />;
+  }
 
   /* ==== Manejadores de evento - LOGICA DE REGISTRO === */
 
@@ -63,19 +78,29 @@ export const Register = () => {
       return; // Detenemos el proceso
     }
 
+    //El backend exige al menos 6 caracteres
+    if (formData.password.length < MIN_PASSWORD_LENGTH) {
+      setError(`La contraseña debe tener al menos ${MIN_PASSWORD_LENGTH} caracteres`);
+      return;
+    }
+
     //Bloque try-catch - Para manejar la logica de registro
     try {
 
       setIsSubmitting(true); // Establecemos el estado de carga
 
-      //Realizamos la peticion al endpoint /register
-      const response = await apiClient.post("/auth/register", formData);
+      //Realizamos la peticion al endpoint /register. El rol no se envía: el registro público siempre crea un pedagogo.
+      await apiClient.post("/auth/register", {
+        ...formData,
+        name: formData.name.trim(),
+        email: formData.email.trim().toLowerCase(),
+      });
       setSuccessMsg("Cuenta creada con éxito. Redirigiendo a inicio de sesión...");
 
       // Esperamos 1.5 segundos para que el usuario lea el mensaje y redirigimos
-      setTimeout(() => {
+      redirectTimer.current = setTimeout(() => {
         navigate("/login");
-      }, 3000);
+      }, REDIRECT_DELAY_MS);
 
     } catch (err) {
 
@@ -149,6 +174,7 @@ export const Register = () => {
             <input
               type="text"
               name="name"
+              id="name"
               value={formData.name}
               onChange={handleChange}
               className="w-full bg-[#FAF8F5] border border-[#EBE7DF] focus:border-[#529471] focus:bg-white rounded-2xl pl-10 pr-4 py-3 text-sm text-slate-700 outline-none transition-all"
@@ -162,6 +188,7 @@ export const Register = () => {
             <label htmlFor="specialization" className="block text-[11px] font-bold uppercase tracking-wider text-ink-muted mb-1.5">Especialidad</label>
             <select
               name="specialization"
+              id="specialization"
               value={formData.specialization}
               onChange={handleChange}
               className="w-full bg-[#FAF8F5] border border-[#EBE7DF] focus:border-[#529471] focus:bg-white rounded-2xl pl-10 pr-4 py-3 text-sm text-slate-700 outline-none transition-all"
@@ -182,6 +209,7 @@ export const Register = () => {
             <input
               type="email"
               name="email"
+              id="email"
               value={formData.email}
               onChange={handleChange}
               className="w-full bg-[#FAF8F5] border border-[#EBE7DF] focus:border-[#529471] focus:bg-white rounded-2xl pl-10 pr-4 py-3 text-sm text-slate-700 outline-none transition-all"

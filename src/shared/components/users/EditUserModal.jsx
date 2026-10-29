@@ -1,32 +1,21 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { FiUser, FiBriefcase, FiShield, FiCheck } from "react-icons/fi";
 import apiClient from "../../config/axios";
 import { SPECIALIZATIONS } from "../../utils/constants";
-import { getAvatarUrl } from "../../utils/HelperAvatar";
+import { getApiErrorMessage } from "../../utils/APIHelpers";
 import { Modal } from "../ui/Modal";
 
+// Este modal se monta con key={userToEdit._id} (ver Users.jsx): cada usuario editado empieza con el estado inicial limpio
 export const EditUserModal = ({ isOpen, onClose, userToEdit, onUserUpdated }) => {
 
-  //Estado para guardar los datos del usuario que se va a editar
+  //Estado para guardar los datos del usuario que se va a editar (se inicializa con los datos actuales del usuario)
   const [formData, setFormData] = useState({
-    name: "",
-    specialization: "",
-    rol: "pedagogo",
+    name: userToEdit?.name || "",
+    specialization: userToEdit?.specialization || "",
+    rol: userToEdit?.rol || "pedagogo",
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
-  
-  //Cargamos los datos del usuario a editar en el formulario
-  useEffect(() => {
-    if (userToEdit) {
-      setFormData({
-        name: userToEdit.name || "",
-        specialization: userToEdit.specialization || "",
-        rol: userToEdit.rol || "pedagogo",
-      });
-      setErrorMsg("");
-    }
-  }, [userToEdit]);
 
   if (!isOpen || !userToEdit) return null;
 
@@ -71,8 +60,7 @@ export const EditUserModal = ({ isOpen, onClose, userToEdit, onUserUpdated }) =>
       onUserUpdated(updatedUser);
       handleClose();
     } catch (err) {
-      const data = err.response?.data;
-      setErrorMsg(data?.error || data?.message || "Error al actualizar los datos del usuario.");
+      setErrorMsg(getApiErrorMessage(err, "Error al actualizar los datos del usuario."));
     } finally {
       setIsSubmitting(false);
     }
@@ -90,19 +78,20 @@ export const EditUserModal = ({ isOpen, onClose, userToEdit, onUserUpdated }) =>
         {/* Formulario */}
         <form onSubmit={handleSubmit} className="mt-5 space-y-4">
           {errorMsg && (
-            <div className="p-3 bg-red-50 border border-red-200 rounded-2xl text-xs text-red-700">
+            <div role="alert" className="p-3 bg-red-50 border border-red-200 rounded-2xl text-xs text-red-700">
               {errorMsg}
             </div>
           )}
 
           {/* Nombre Completo */}
           <div>
-            <label className="block text-[11px] font-bold uppercase tracking-wider text-ink-muted mb-1.5">
+            <label htmlFor="edit-user-name" className="block text-[11px] font-bold uppercase tracking-wider text-ink-muted mb-1.5">
               Nombre Completo
             </label>
             <div className="relative">
               <input
                 type="text"
+                id="edit-user-name"
                 name="name"
                 value={formData.name}
                 onChange={handleChange}
@@ -115,11 +104,12 @@ export const EditUserModal = ({ isOpen, onClose, userToEdit, onUserUpdated }) =>
 
           {/* Especialidad */}
           <div>
-            <label className="block text-[11px] font-bold uppercase tracking-wider text-ink-muted mb-1.5">
+            <label htmlFor="edit-user-specialization" className="block text-[11px] font-bold uppercase tracking-wider text-ink-muted mb-1.5">
               Especialidad
             </label>
             <div className="relative">
               <select
+                id="edit-user-specialization"
                 name="specialization"
                 value={formData.specialization}
                 onChange={handleChange}
@@ -137,14 +127,15 @@ export const EditUserModal = ({ isOpen, onClose, userToEdit, onUserUpdated }) =>
           </div>
 
           {/* Rol del usuario */}
-          <div>
-            <label className="block text-[11px] font-bold uppercase tracking-wider text-ink-muted mb-1.5">
+          <div role="group" aria-labelledby="edit-user-role-label">
+            <p id="edit-user-role-label" className="block text-[11px] font-bold uppercase tracking-wider text-ink-muted mb-1.5">
               Rol en la Plataforma
-            </label>
+            </p>
             <div className="grid grid-cols-2 gap-3">
               {/* Opción Pedagogo */}
               <button
                 type="button"
+                aria-pressed={formData.rol === "pedagogo"}
                 onClick={() => setFormData((prev) => ({ ...prev, rol: "pedagogo" }))}
                 className={`p-3.5 rounded-2xl border text-left flex flex-col justify-between transition-all cursor-pointer ${
                   formData.rol === "pedagogo"
@@ -164,6 +155,7 @@ export const EditUserModal = ({ isOpen, onClose, userToEdit, onUserUpdated }) =>
               {/* Opción Admin */}
               <button
                 type="button"
+                aria-pressed={formData.rol === "admin"}
                 onClick={() => setFormData((prev) => ({ ...prev, rol: "admin" }))}
                 className={`p-3.5 rounded-2xl border text-left flex flex-col justify-between transition-all cursor-pointer ${
                   formData.rol === "admin"
