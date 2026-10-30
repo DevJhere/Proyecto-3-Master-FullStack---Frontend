@@ -3,7 +3,7 @@ import { getAvatarUrl } from "../../utils/HelperAvatar";
 import { COURSES, DIAGNOSIS } from "../../utils/constants";
 
 
-export const StudentCard = ({student}) => {
+export const StudentCard = ({student, showPedagogo = false}) => {
   return (
     <Link
     to={`/students/${student._id}`}
@@ -40,6 +40,16 @@ export const StudentCard = ({student}) => {
                 {`${COURSES[student.course] || student.course || "Curso no asignado"} · ${student.age || "Edad no registrada"} años`}
             </p>
             
+            {/* 
+            //nueva prop showPedagogo (la activa el admin) para mostrar el pedagogo asignado al alumno
+            CAMBIO: Pedagogo asignado (pedagogoAsignado llega poblado desde el backend con name y email) 
+            */}
+            {showPedagogo && (
+                <p className="text-xs text-[#69488E] font-medium mb-2 truncate">
+                    Pedagogo: {student.pedagogoAsignado?.name || "Sin asignar"}
+                </p>
+            )}
+
             {/* Datos alumno - Fila Tutor y Contador Sesiones */}
             <div className="flex items-center justify-between pt-3 border-t border-[#F5F2EB]">
 

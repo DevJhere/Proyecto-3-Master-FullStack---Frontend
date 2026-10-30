@@ -3,12 +3,21 @@ import { useState } from "react";
 import { FiChevronLeft, FiChevronRight } from "react-icons/fi";
 import { useEffect } from "react";
 import apiClient from "../../config/axios";
+import { useAuth } from "../../hooks/useAuth";
 import { IoSearchOutline } from "react-icons/io5";
 import { LuSearchX } from "react-icons/lu";
 import { NewStudentModal } from "../../components/students/NewStudentModal";
 import { getApiErrorMessage, normalizeSessions, normalizeStudents } from "../../utils/APIHelpers";
 
 export const Students = () => {
+
+  /* CAMBIO (filtro Mis alumnos / Todos): el backend devuelve al administrador los alumnos de todos los pedagogos
+     (GET /students). Para que no parezcan suyos, el admin puede alternar entre "Todos" y "Mis alumnos" y cada
+     tarjeta muestra a qué pedagogo está asignado el alumno. Para un pedagogo no cambia nada (ya solo recibe los suyos). */
+  const { user } = useAuth();
+  const isAdmin = user?.rol === "admin";
+  const currentUserId = user?._id || user?.id;
+  const [ studentScope, setStudentScope ] = useState("all"); // "all" | "mine"
 
   /* Defimos estados locales */
 
@@ -82,6 +91,11 @@ export const Students = () => {
   const filteredStudents = students.filter( (student) => {
     const term = searchTerm.toLowerCase().trim();
 
+    // CAMBIO: con "Mis alumnos" el admin solo ve los alumnos asignados a él mismo (pedagogoAsignado puede venir poblado como objeto o como id)
+    if (isAdmin && studentScope === "mine") {
+      const assignedId = typeof student.pedagogoAsignado === "object" ? student.pedagogoAsignado?._id : student.pedagogoAsignado;
+      if (assignedId !== currentUserId) return false;
+    }
 
     return(
       student.name?.toLowerCase().includes(term) ||
@@ -129,8 +143,9 @@ export const Students = () => {
           </button>
         </div>
 
-        {/* Barra de búsqueda */}
-        <div className="relative mb-4 shrink-0">
+        {/* Barra de búsqueda y (solo admin) filtro Mis alumnos / Todos */}
+        <div className="flex flex-col md:flex-row gap-4 items-stretch md:items-center mb-4 shrink-0">
+        <div className="relative flex-1">
           <IoSearchOutline className="absolute left-4 top-1/2 -translate-y-1/2 text-ink-faint" size={18} />
           <input
           type="text"
@@ -143,6 +158,34 @@ export const Students = () => {
           }}
           className="w-full pl-11 pr-4 py-3 bg-white border border-[#e8e4db] rounded-xl text-sm text-ink placeholder:text-ink-faint focus:outline-none focus:border-[#5d9e7e] transition-colors"
           />
+        </div>
+
+        {/* CAMBIO: filtro en formato pills, solo visible para el administrador. Al cambiar volvemos a la primera página */}
+        {isAdmin && (
+          <div className="flex items-center gap-1.5 p-1 bg-white border border-[#EBE7DF] rounded-xl shrink-0 self-start md:self-auto">
+            {[
+              { value: "all", label: "Todos" },
+              { value: "mine", label: "Mis alumnos" },
+            ].map(({ value, label }) => (
+              <button
+                key={value}
+                type="button"
+                aria-pressed={studentScope === value}
+                onClick={() => {
+                  setStudentScope(value);
+                  setCurrentPage(1);
+                }}
+                className={`px-4 py-2 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                  studentScope === value
+                    ? "bg-[#529471] text-white shadow-xs"
+                    : "text-slate-600 hover:text-slate-800 hover:bg-[#FAF8F5]"
+                }`}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+        )}
         </div>
 
         {/* Estados de Carga de Error y Estado vacío */}
@@ -177,6 +220,7 @@ export const Students = () => {
                   ...student,
                   sessionsCount: getStudentSessionsCount(student._id),
                 }}
+                showPedagogo={isAdmin} // CAMBIO: el admin ve a qué pedagogo pertenece cada alumno
                 />
               ))}
           </div>
