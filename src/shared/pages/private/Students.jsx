@@ -121,12 +121,16 @@ export const Students = () => {
     /* CAMBIO (scroll en Alumnos): antes la página tenía su propio overflow-y-auto, py-6 y mostraba todas las
        tarjetas a la vez. Ahora ocupa el alto disponible (h-full): cabecera, buscador y paginación quedan fijos
        y solo el listado (máx. 10 alumnos por página) puede hacer scroll interno si la pantalla es pequeña. */
-    <div className="h-full">
-      <div className="max-w-7xl mx-auto px-8 h-full flex flex-col">
+    /* CAMBIO (responsive): el alto fijo con scroll interno del listado solo se aplica desde lg (PC). En móvil y tablet la cabecera,
+       el buscador y la paginación dejaban muy poco alto al listado, así que ahí la página fluye con altura natural y hace scroll
+       el <main> del layout. El px-8 interior también solo desde lg (el <main> ya aporta su padding). */
+    <div className="lg:h-full">
+      <div className="max-w-7xl mx-auto lg:px-8 lg:h-full flex flex-col">
         {/* Contenedor cabecera */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4 shrink-0">
           <div>
-            <h1 className="text-3xl tracking-wider font-medium text-ink leading-snug">Alumnos</h1>
+            {/* CAMBIO (responsive): título más pequeño en móvil */}
+            <h1 className="text-2xl md:text-3xl tracking-wider font-medium text-ink leading-snug">Alumnos</h1>
             <p className="text-sm text-slate-500 mt-1 tracking-wider leading-snug">Gestión de alumnos y expedientes</p>
           </div>
 
@@ -212,7 +216,8 @@ export const Students = () => {
         {/* Grid cards Alumnos */}
         {!isLoadingStudents && !isLoadingSessions && filteredStudents.length > 0 && (
           // CAMBIO: grid con scroll interno (flex-1 min-h-0 overflow-y-auto); en xl pasa a 5 columnas para que las 10 tarjetas de la página ocupen 2 filas
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4 content-start flex-1 min-h-0 overflow-y-auto p-1">
+          // CAMBIO (responsive): el scroll interno (flex-1 min-h-0 overflow-y-auto) pasa a ser solo desde lg; antes era siempre
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4 content-start lg:flex-1 lg:min-h-0 lg:overflow-y-auto p-1">
               {paginatedStudents.map( (student) => (
                 <StudentCard
                 key={student._id}
@@ -228,12 +233,13 @@ export const Students = () => {
 
         {/* CAMBIO: controles de paginación (solo si hay más alumnos de los que caben en una página) */}
         {!isLoadingStudents && !isLoadingSessions && filteredStudents.length > STUDENTS_PER_PAGE && (
-          <nav aria-label="Paginación de alumnos" className="flex items-center justify-between gap-4 pt-4 shrink-0">
+          // CAMBIO (responsive): en móvil el texto y los botones se apilan, y los números de página pueden bajar de línea (flex-wrap)
+          <nav aria-label="Paginación de alumnos" className="flex flex-col sm:flex-row items-center justify-between gap-3 sm:gap-4 pt-4 shrink-0">
             <p className="text-xs text-slate-500">
               Mostrando {pageStart + 1}–{Math.min(pageStart + STUDENTS_PER_PAGE, filteredStudents.length)} de {filteredStudents.length} alumnos
             </p>
 
-            <div className="flex items-center gap-1">
+            <div className="flex flex-wrap items-center justify-center gap-1">
               <button
                 type="button"
                 aria-label="Página anterior"
