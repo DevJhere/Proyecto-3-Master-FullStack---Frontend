@@ -183,6 +183,7 @@ export const NewUserModal = ({ isOpen, onClose, onUserCreated }) => {
             value={formData.password}
             onChange={handleChange}
             placeholder="Contraseña"
+            autoComplete="new-password"
             required
           />
 

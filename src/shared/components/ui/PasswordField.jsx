@@ -3,7 +3,7 @@ import { FiLock, FiEye, FiEyeOff } from "react-icons/fi";
 
 
 
-export const PasswordField = ( {label = "Contraseña", name = "password", value, onChange, placeholder = "••••••••", required = false }) => {
+export const PasswordField = ( {label = "Contraseña", name = "password", value, onChange, placeholder = "••••••••", required = false, autoComplete = "current-password" }) => {
 
   //Estados locales
   const  [showPassword, setShowPassword] = useState(false);
@@ -27,6 +27,7 @@ export const PasswordField = ( {label = "Contraseña", name = "password", value,
             onChange={onChange}
             placeholder={placeholder}
             required={required}
+            autoComplete={autoComplete}
             className="w-full bg-[#FAF8F5] border border-[#EBE7DF] focus:border-[#529471] focus:bg-white rounded-2xl pl-10 pr-10 py-3 text-sm text-int-faint outline-none transition-all"
         />
         <FiLock className="absolute left-3.5 top-10 text-ink-faint"/>

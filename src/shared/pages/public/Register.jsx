@@ -223,6 +223,7 @@ export const Register = () => {
             value={formData.password}
             onChange={handleChange}
             placeholder="Contraseña"
+            autoComplete="new-password"
             required
           />
 
