@@ -148,13 +148,15 @@ export const Profile = () => {
        generosos (space-y-6, p-8, pt-6) que, sumados al p-8 del <main>, generaban scroll. Se elimina el
        scroll propio y se compactan los espaciados para que el formulario quepa en pantalla sin desplazar. */
     <div className="h-full">
-      <div className="max-w-4xl mx-auto px-6 space-y-4">
+      {/* CAMBIO (responsive): el px-6 interior solo desde lg, porque el <main> del layout ya aporta su padding y en móvil se duplicaba */}
+      <div className="max-w-4xl mx-auto lg:px-6 space-y-4">
         {/* CABECERA */}
         <div>
           <p className="text-[11px] font-bold tracking-wider text-[#529471] uppercase mb-1">
             TU CUENTA
           </p>
-          <h1 className="text-3xl font-serif font-bold text-slate-800">
+          {/* CAMBIO (responsive): título más pequeño en móvil */}
+          <h1 className="text-2xl md:text-3xl font-serif font-bold text-slate-800">
             Configuración de perfil
           </h1>
           <p className="text-xs sm:text-sm text-ink-muted mt-1">
@@ -183,7 +185,8 @@ export const Profile = () => {
                 Una imagen clara ayuda a personalizar tu espacio de trabajo.
               </p>
             </div>
-            <div className="pt-4 flex items-center gap-6">
+            {/* CAMBIO (responsive): flex-wrap para que la foto y el botón se apilen si no caben en pantallas muy estrechas */}
+            <div className="pt-4 flex flex-wrap items-center gap-4 sm:gap-6">
               {/* Círculo Avatar */}
               <div className="w-20 h-20 rounded-full bg-[#EDE7F6] text-[#7E57C2] flex items-center justify-center font-bold text-xl overflow-hidden shrink-0 border border-[#EBE7DF]">
                 {avatarPreview ? (
@@ -229,6 +232,7 @@ export const Profile = () => {
                 Estos datos identifican tu cuenta dentro de la plataforma.
               </p>
             </div>
+            {/* CAMBIO (responsive): los campos usan text-base en móvil (16px) para que iOS no haga zoom al enfocarlos; desde sm vuelven a text-sm */}
             <div className="pt-4 space-y-4">
               {/* Nombre Completo */}
               <div>
@@ -242,7 +246,7 @@ export const Profile = () => {
                   value={formData.name}
                   onChange={handleChange}
                   placeholder="Tu nombre completo"
-                  className="w-full px-4 py-3 bg-[#FAF8F5] border border-[#EBE7DF] rounded-2xl text-xs sm:text-sm text-slate-800 focus:outline-none focus:border-[#529471] focus:bg-white transition-all"
+                  className="w-full px-4 py-3 bg-[#FAF8F5] border border-[#EBE7DF] rounded-2xl text-base sm:text-sm text-slate-800 focus:outline-none focus:border-[#529471] focus:bg-white transition-all"
                 />
               </div>
               {/* Fila: Especialidad y Correo electrónico */}
@@ -257,7 +261,7 @@ export const Profile = () => {
                     name="specialization"
                     value={formData.specialization}
                     onChange={handleChange}
-                    className="w-full px-4 py-3 bg-[#FAF8F5] border border-[#EBE7DF] rounded-2xl text-xs sm:text-sm text-slate-800 focus:outline-none focus:border-[#529471] focus:bg-white transition-all cursor-pointer"
+                    className="w-full px-4 py-3 bg-[#FAF8F5] border border-[#EBE7DF] rounded-2xl text-base sm:text-sm text-slate-800 focus:outline-none focus:border-[#529471] focus:bg-white transition-all cursor-pointer"
                   >
                     <option value="">Selecciona una especialidad</option>
                     {Object.values(SPECIALIZATIONS).map((spec) => (
@@ -285,12 +289,12 @@ export const Profile = () => {
               </div>
             </div>
           </div>
-          {/* BOTÓN GUARDAR CAMBIOS */}
+          {/* BOTÓN GUARDAR CAMBIOS (CAMBIO responsive: ocupa todo el ancho en móvil para facilitar la pulsación) */}
           <div className="flex justify-end">
             <button
               type="submit"
               disabled={isSubmitting}
-              className="px-6 py-3 bg-[#529471] hover:bg-[#437a5d] text-white rounded-2xl text-xs sm:text-sm font-semibold shadow-sm transition-all disabled:opacity-50 cursor-pointer"
+              className="w-full sm:w-auto px-6 py-3 bg-[#529471] hover:bg-[#437a5d] text-white rounded-2xl text-sm font-semibold shadow-sm transition-all disabled:opacity-50 cursor-pointer"
             >
               {isSubmitting ? "Guardando..." : "Guardar cambios"}
             </button>
