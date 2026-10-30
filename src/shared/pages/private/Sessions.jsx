@@ -19,6 +19,13 @@ export const Sessions = () => {
   //Fecha inicio de la semana empleando la función getMondayOfWeek para tener el lunes de la semana actual
   const [currentWeekStart, setCurrentWeekStart] = useState(() => getMondayOfWeek());
 
+  /* CAMBIO (responsive): en móvil (<768px) cinco columnas de día no caben, así que se muestra un solo día cada vez y este estado guarda
+     cuál (0 = lunes ... 4 = viernes). Por defecto, el día de hoy si es laborable y, si no, el lunes. En tablet y PC se sigue viendo la semana completa. */
+  const [selectedDayIdx, setSelectedDayIdx] = useState(() => {
+    const weekday = new Date().getDay(); // 0 = domingo ... 6 = sábado
+    return weekday >= 1 && weekday <= 5 ? weekday - 1 : 0;
+  });
+
   // Estados del Modal de la nueva sesión
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedDateTime, setSelectedDateTime] = useState(null);
@@ -120,16 +127,19 @@ export const Sessions = () => {
 
 
   return (
+    /* CAMBIO (responsive): el alto fijo (h-full) con filas repartidas solo se aplica desde md (tablet y PC); en móvil la página fluye con
+       altura natural (filas de 64px mínimo) y hace scroll el <main>. El px-6 interior solo desde lg, porque el <main> ya aporta padding. */
     /* CAMBIO (scroll en Sesiones): antes la página tenía su propio overflow-y-auto y cada fila de hora medía
        min-h-[92px] (9 filas = ~830px), lo que obligaba a hacer scroll. Ahora la página ocupa el alto
        disponible (h-full) y la rejilla reparte ese alto entre las filas con flex-1. Se mantiene un alto
        mínimo por fila (min-h-[56px]) para que, en pantallas muy bajas, el scroll lo gestione el <main>. */
-    <div className="h-full">
-      <div className="max-w-7xl mx-auto px-6 h-full flex flex-col gap-4">
+    <div className="md:h-full">
+      <div className="max-w-7xl mx-auto lg:px-6 md:h-full flex flex-col gap-4">
         {/* CABECERA: Título, Rango de fechas y Navegación */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 shrink-0">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight text-slate-900">
+            {/* CAMBIO (responsive): título más pequeño en móvil */}
+            <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-slate-900">
               Calendario
             </h1>
             <p className="text-xs sm:text-sm text-ink-muted mt-0.5">
@@ -174,9 +184,31 @@ export const Sessions = () => {
         )}
 
         {/* CONTENEDOR DE LA REJILLA DEL CALENDARIO */}
-        <div className="bg-white rounded-3xl border border-[#EBE7DF] overflow-hidden shadow-sm flex flex-col flex-1 min-h-0">
-          {/* Cabecera de días (LUN 24, MAR 25, ...) */}
-          <div className="grid grid-cols-[70px_repeat(5,1fr)] sm:grid-cols-[90px_repeat(5,1fr)] border-b border-[#EBE7DF] bg-[#FAF8F5]/40 shrink-0">
+        <div className="bg-white rounded-3xl border border-[#EBE7DF] overflow-hidden shadow-sm flex flex-col md:flex-1 md:min-h-0">
+          {/* CAMBIO (responsive): selector de día, solo en móvil. Cada botón muestra el día de la semana y su número;
+              el seleccionado se resalta y el día de hoy se marca en verde */}
+          <div className="md:hidden grid grid-cols-5 border-b border-[#EBE7DF] bg-[#FAF8F5]/40 shrink-0" role="tablist" aria-label="Día de la semana">
+            {weekDays.map((dayDate, i) => {
+              const dayShort = dayDate.toLocaleDateString("es-ES", { weekday: "short" }).toUpperCase().replace(".", "");
+              const isSelected = i === selectedDayIdx;
+              const isToday = isSameDay(dayDate, new Date());
+              return (
+                <button
+                  key={i}
+                  type="button"
+                  role="tab"
+                  aria-selected={isSelected}
+                  onClick={() => setSelectedDayIdx(i)}
+                  className={`py-2 text-center border-b-2 cursor-pointer transition-colors ${isSelected ? "border-[#529471] bg-white" : "border-transparent"}`}
+                >
+                  <span className="block text-[11px] font-semibold text-slate-400 tracking-wider">{dayShort}</span>
+                  <span className={`block text-lg font-bold ${isToday ? "text-[#529471]" : "text-slate-800"}`}>{dayDate.getDate()}</span>
+                </button>
+              );
+            })}
+          </div>
+          {/* Cabecera de días (LUN 24, MAR 25, ...) — CAMBIO (responsive): oculta en móvil (lo sustituye el selector de día) */}
+          <div className="hidden md:grid grid-cols-[70px_repeat(5,1fr)] sm:grid-cols-[90px_repeat(5,1fr)] border-b border-[#EBE7DF] bg-[#FAF8F5]/40 shrink-0">
             {/* Esquina superior izquierda vacía */}
             <div className="border-r border-[#EBE7DF]" />
             {/* Columnas de los 5 días */}
@@ -206,13 +238,14 @@ export const Sessions = () => {
             })}
           </div>
           {/* Filas de horas y celdas */}
-          <div className="divide-y divide-[#EBE7DF]/80 flex flex-col flex-1 min-h-0">
+          <div className="divide-y divide-[#EBE7DF]/80 flex flex-col md:flex-1 md:min-h-0">
             {HOURS.map((hour) => {
               const hourLabel = `${String(hour).padStart(2, "0")}:00`;
               return (
                 <div
                   key={hour}
-                  className="grid grid-cols-[70px_repeat(5,1fr)] sm:grid-cols-[90px_repeat(5,1fr)] flex-1 min-h-[56px]"
+                  // CAMBIO (responsive): en móvil 2 columnas (hora + el día elegido) con 64px mínimo por fila; desde md la semana completa
+                  className="grid grid-cols-[56px_1fr] md:grid-cols-[90px_repeat(5,1fr)] md:flex-1 min-h-[64px] md:min-h-[56px]"
                 >
                   {/* Columna Izquierda: Hora */}
                   <div className="text-center pt-2 text-xs font-semibold text-slate-400 border-r border-[#EBE7DF]">
@@ -234,17 +267,25 @@ export const Sessions = () => {
                             handleSlotClick(dayDate, hour);
                           }
                         }}
-                        className={`p-1 sm:p-1.5 overflow-hidden border-r border-[#EBE7DF]/80 last:border-r-0 transition-colors group relative ${cellSessions.length === 0
+                        // CAMBIO (responsive): en móvil solo se muestra la celda del día seleccionado (el resto "hidden md:block")
+                        className={`${dayIdx === selectedDayIdx ? "" : "hidden md:block"} p-1 sm:p-1.5 overflow-hidden border-r border-[#EBE7DF]/80 last:border-r-0 transition-colors group relative ${cellSessions.length === 0
                             ? "hover:bg-[#FAF8F5]/70 cursor-pointer"
                             : ""
                           }`}
                       >
                         {/* Si la celda está vacía, mostramos en hover un sutil botón para agendar */}
                         {cellSessions.length === 0 && (
-                          <div className="hidden group-hover:flex items-center justify-center h-full text-slate-300 text-xs font-semibold gap-1">
-                            <FiPlus size={14} />
-                            <span className="hidden md:inline">Agendar</span>
-                          </div>
+                          <>
+                            {/* CAMBIO (responsive): en móvil no existe el hover, así que la celda libre muestra siempre una pista discreta "Agendar" */}
+                            <div className="md:hidden flex items-center justify-center h-full text-slate-300 text-xs font-semibold gap-1">
+                              <FiPlus size={14} />
+                              <span>Agendar</span>
+                            </div>
+                            <div className="hidden md:group-hover:flex items-center justify-center h-full text-slate-300 text-xs font-semibold gap-1">
+                              <FiPlus size={14} />
+                              <span className="hidden md:inline">Agendar</span>
+                            </div>
+                          </>
                         )}
                         {/* Tarjeta de Sesión programada */}
                         {cellSessions.map((session) => {

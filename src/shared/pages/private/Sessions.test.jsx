@@ -60,11 +60,32 @@ describe("Sessions: estructura del calendario", () => {
     renderCalendar();
     await waitForCalendar();
 
+    // CAMBIO (responsive): cada día aparece dos veces en el DOM (cabecera de PC/tablet y selector de día móvil, ocultos por CSS según el ancho).
+    // Aquí comprobamos la cabecera de la semana completa, excluyendo el selector móvil (role="tablist").
+    const headerLabel = (label) => screen.getAllByText(label).find((el) => !el.closest('[role="tablist"]'));
+
     for (const [label, number] of [["LUN", "2"], ["MAR", "3"], ["MIÉ", "4"], ["JUE", "5"], ["VIE", "6"]]) {
-      expect(screen.getByText(label).nextElementSibling).toHaveTextContent(number);
+      expect(headerLabel(label).nextElementSibling).toHaveTextContent(number);
     }
-    expect(screen.getByText("JUE").nextElementSibling).toHaveClass("text-[#529471]"); // hoy
-    expect(screen.getByText("MAR").nextElementSibling).not.toHaveClass("text-[#529471]");
+    expect(headerLabel("JUE").nextElementSibling).toHaveClass("text-[#529471]"); // hoy
+    expect(headerLabel("MAR").nextElementSibling).not.toHaveClass("text-[#529471]");
+  });
+
+  // CAMBIO (responsive): selector de día para móvil (solo se ve un día cada vez por debajo de md)
+  it("ofrece un selector de día para móvil con el día de hoy seleccionado y permite cambiarlo", async () => {
+    const user = userEvent.setup();
+    freezeToday();
+    stubApi();
+    renderCalendar();
+    await waitForCalendar();
+
+    const tabs = within(screen.getByRole("tablist", { name: "Día de la semana" })).getAllByRole("tab");
+    expect(tabs).toHaveLength(5);
+    expect(tabs[3]).toHaveAttribute("aria-selected", "true"); // jueves = hoy
+
+    await user.click(tabs[0]);
+    expect(tabs[0]).toHaveAttribute("aria-selected", "true");
+    expect(tabs[3]).toHaveAttribute("aria-selected", "false");
   });
 
   it("tiene una fila por franja de 09:00 a 17:00", async () => {
