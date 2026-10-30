@@ -127,16 +127,21 @@ export const Dashboard = () => {
        márgenes mb-10 que, sumados al p-8 del <main> de MainLayout, generaban scroll. Ahora ocupa
        exactamente el alto disponible (h-full), reduce los espaciados y solo la lista de "Sesiones de hoy"
        hace scroll interno si hay muchas, así la página en sí no desplaza. */
-    <div className="h-full overflow-hidden">
+    /* CAMBIO (responsive): el diseño "sin scroll de página" (h-full + overflow-hidden) solo se aplica desde lg (PC).
+       En móvil y tablet el contenido (KPI en columna, lista y accesos rápidos) no cabe en el alto de pantalla y quedaba recortado,
+       así que ahí fluye con altura natural y hace scroll el <main> del layout. El px-8 interior también solo desde lg, porque
+       el <main> ya aporta su propio padding y en móvil se duplicaba. */
+    <div className="lg:h-full lg:overflow-hidden">
       {/* Contenedor */}
-      <div className="max-w-7xl mx-auto px-8 h-full flex flex-col">
+      <div className="max-w-7xl mx-auto lg:px-8 lg:h-full flex flex-col">
 
         {/* Contendedor cabecera */}
         <div className="mb-4 shrink-0">
           <p className="text-sm text-ink-faint font-medium mb-1">{dateTodayCap}</p>
 
           {/* Titulo Saludo a Usuario */}
-          <h1 className="text-3xl tracking-wider font-medium text-ink leading-snug">
+          {/* CAMBIO (responsive): título más pequeño en móvil (text-2xl) */}
+          <h1 className="text-2xl md:text-3xl tracking-wider font-medium text-ink leading-snug">
             Hola, {userNameCap}
           </h1>
           <p className="text-ink-muted mt-1 text-sm mb-0">Tienes{" "}
@@ -156,6 +161,7 @@ export const Dashboard = () => {
         )}
 
         {/* Contenedor TARJETAS KPI */}
+        {/* CAMBIO (responsive): 1 columna en móvil, 3 desde md (tablet y PC) */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4 shrink-0">
           {/* Alumnos Activos */}
           <KpiCard
@@ -186,9 +192,10 @@ export const Dashboard = () => {
         </div>
 
         {/* Contenedor Sesiones de Hoy */}
-        <div className="mb-4 flex-1 min-h-0 flex flex-col">
+        <div className="mb-4 lg:flex-1 lg:min-h-0 flex flex-col">
 
-          <div className="flex items-baseline justify-between mb-3 shrink-0">
+          {/* CAMBIO (responsive): el enlace puede bajar de línea (flex-wrap) en pantallas estrechas */}
+          <div className="flex flex-wrap items-baseline justify-between gap-x-3 mb-3 shrink-0">
             <h2 className="text-lg font-semibold tracking-wider text-ink">
               Sesiones de hoy
             </h2>
@@ -207,7 +214,8 @@ export const Dashboard = () => {
             </div>
           ) : (
             // Si hay sesiones, recorremos la lista
-            <div className="space-y-3 flex-1 min-h-0 overflow-y-auto pr-1">
+            // CAMBIO (responsive): fuera de PC la lista se limita a max-h-80 con scroll propio; en lg ocupa el alto sobrante
+            <div className="space-y-3 max-h-80 overflow-y-auto pr-1 lg:max-h-none lg:flex-1 lg:min-h-0">
 
               {myTodaySessions.map((session) => (
                 <SessionCard
