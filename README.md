@@ -120,7 +120,9 @@ Cubren las páginas (Login, Register, Dashboard, Students, StudentDetail, Sessio
 
 ## Producción
 
-`pnpm build` genera `dist/` (archivos estáticos). Debe servirse con *fallback* a `index.html` para que funcionen las rutas de React Router, y `VITE_API_URL` debe apuntar a la API de producción **antes** de compilar (Vite la incrusta en la build).
+`pnpm build` genera `dist/` (archivos estáticos). Debe servirse con *fallback* a `index.html` para que funcionen las rutas de React Router (recargar `/students` no debe dar 404), y `VITE_API_URL` debe apuntar a la API de producción **antes** de compilar (Vite la incrusta en la build).
+
+El proyecto incluye `vercel.json` con esa regla de reescritura, por lo que se despliega en Vercel sin configuración extra. En Vercel define la variable `VITE_API_URL` (por ejemplo `https://tu-api.onrender.com/api`) en *Settings → Environment Variables* y vuelve a desplegar si la cambias. Recuerda añadir la URL final del frontend a `CORS_ORIGIN` en el backend.
 
 ## Limitaciones conocidas
 
