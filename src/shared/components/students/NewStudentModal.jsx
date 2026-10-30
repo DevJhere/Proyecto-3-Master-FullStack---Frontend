@@ -209,13 +209,16 @@ export const NewStudentModal = ({ isOpen, onClose, onStudentCreated }) => {
             onClose={handleClose}
             title={step === 1 ? "Datos del Alumno" : "Datos del tutor legal"}
             subtitle={`Paso ${step} de 2`}
-            maxWidth="max-w-lg"
+            // CAMBIO (scroll en Nuevo Alumno): el contenedor del Modal tiene max-h-[90vh] con overflow-y-auto, así que el paso 1
+            // generaba scroll al ser demasiado alto. Se amplía a max-w-xl, se junta foto + nombre en una fila y se
+            // reducen los espaciados verticales para que el formulario quepa sin desplazar.
+            maxWidth="max-w-xl"
         >
             {/* Formulario. Enter valida el paso en el que se encuentra el usuario */}
-            <form onSubmit={step === 1 ? handleNext : handleSubmit} noValidate className="mt-4 space-y-4">
+            <form onSubmit={step === 1 ? handleNext : handleSubmit} noValidate className="mt-3 space-y-3">
                 {/* Mostrar error */}
                 {error && (
-                    <div role="alert" className="w-full bg-red-50 border border-red-200 rounded-2xl p-3 text-center text-red-700 text-xs mb-4">
+                    <div role="alert" className="w-full bg-red-50 border border-red-200 rounded-2xl p-3 text-center text-red-700 text-xs">
                         {error}
                     </div>
                 )}
@@ -223,10 +226,11 @@ export const NewStudentModal = ({ isOpen, onClose, onStudentCreated }) => {
                 {/* Formulario Paso 1 */}
                 {step === 1 ? (
                     // Campors del paso 1
-                    <div className="space-y-4">
+                    <div className="space-y-3">
                         {/* Subida de foto perfil con Preview */}
-                        <div className="flex items-center gap-4 pb-2">
-                            <div className="relative w-16 h-16 rounded-full bg-[#FAF8F5] border-2 border-dashed border-[#EBE7DF] flex items-center justify-center overflow-hidden shrink-0">
+                        {/* CAMBIO (scroll en Nuevo Alumno): la foto y el nombre completo comparten fila (antes ocupaban dos bloques apilados) */}
+                        <div className="flex items-end gap-4">
+                            <div className="relative w-14 h-14 rounded-full bg-[#FAF8F5] border-2 border-dashed border-[#EBE7DF] flex items-center justify-center overflow-hidden shrink-0">
                                 {avatarPreview ? (
                                     <img src={avatarPreview} alt="Avatar Preview" className="w-full h-full object-cover" />
                                 ) : (
@@ -249,19 +253,19 @@ export const NewStudentModal = ({ isOpen, onClose, onStudentCreated }) => {
                                 </label>
                                 <p className="text-[11px] text-slate-400 mt-1">PNG o JPG (máx. 5MB)</p>
                             </div>
-                        </div>
 
-                        {/* Nombre Completo */}
-                        <div>
-                            <label htmlFor="student-name" className={LABEL_CLASS}>Nombre Completo *</label>
-                            <input
-                                type="text"
-                                id="student-name"
-                                name="name"
-                                value={formData.name}
-                                onChange={handleChange}
-                                placeholder="Ej: Lucía Navarro Martinéz"
-                                className={INPUT_CLASS} />
+                            {/* Nombre Completo */}
+                            <div className="flex-1 min-w-0">
+                                <label htmlFor="student-name" className={LABEL_CLASS}>Nombre Completo *</label>
+                                <input
+                                    type="text"
+                                    id="student-name"
+                                    name="name"
+                                    value={formData.name}
+                                    onChange={handleChange}
+                                    placeholder="Ej: Lucía Navarro Martinéz"
+                                    className={INPUT_CLASS} />
+                            </div>
                         </div>
 
                         {/* Edad y Curos en dos Columnas */}
@@ -354,7 +358,7 @@ export const NewStudentModal = ({ isOpen, onClose, onStudentCreated }) => {
                     </div>
                 ) : (
                     // Campos del paso 2
-                    <div className="space-y-4">
+                    <div className="space-y-3">
                         {/* Nombre del tutor legal */}
                         <div>
                             <label htmlFor="student-nameTutor" className={LABEL_CLASS}>Nombre del tutor/a legal *</label>
@@ -424,7 +428,7 @@ export const NewStudentModal = ({ isOpen, onClose, onStudentCreated }) => {
             </form>
 
             {/* Botones de Accion */}
-            <div className="pt-4 border-t border-[#EBE7DF] flex items-center justify-between bg-white mt-6">
+            <div className="pt-3 border-t border-[#EBE7DF] flex items-center justify-between bg-white mt-4">
                 {step === 2 ? (
                     <button
                         type="button"
