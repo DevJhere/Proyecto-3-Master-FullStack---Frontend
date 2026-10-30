@@ -123,12 +123,15 @@ export const Users = () => {
        entre bloques que, sumados al p-8 del <main>, generaban scroll. Ahora ocupa el alto disponible (h-full):
        cabecera, métricas y buscador quedan fijos y solo el listado de tarjetas puede hacer scroll interno
        si hay muchos miembros. */
-    <div className="h-full">
-      <div className="max-w-7xl mx-auto px-8 h-full flex flex-col">
+    /* CAMBIO (responsive): igual que en Alumnos, el alto fijo con scroll interno del listado solo se aplica desde lg (PC);
+       en móvil y tablet la página fluye con altura natural y hace scroll el <main> del layout. El px-8 interior también solo desde lg. */
+    <div className="lg:h-full">
+      <div className="max-w-7xl mx-auto lg:px-8 lg:h-full flex flex-col">
         {/* CABECERA PRINCIPAL */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4 shrink-0">
           <div>
-            <h1 className="text-3xl tracking-wider font-semibold text-ink leading-snug">
+            {/* CAMBIO (responsive): título más pequeño en móvil */}
+            <h1 className="text-2xl md:text-3xl tracking-wider font-semibold text-ink leading-snug">
               Gestión de Equipo
             </h1>
             <p className="text-sm text-ink-muted mt-1 tracking-wider leading-snug">
@@ -176,7 +179,8 @@ export const Users = () => {
         )}
 
         {/* TARJETAS DE MÉTRICAS */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4 shrink-0">
+        {/* CAMBIO (responsive): 1 columna en móvil y 3 desde md (con la barra lateral de iconos en tablet caben 3 de forma ajustada; en sm sin barra lateral también) */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4 shrink-0">
           {/* Card 1: Total */}
           <div className="bg-white rounded-3xl border border-[#EBE7DF] p-5 shadow-xs flex items-center justify-between">
             <div>
@@ -235,11 +239,12 @@ export const Users = () => {
           </div>
 
           {/* Filtros por Rol en formato pills */}
-          <div className="flex items-center gap-1.5 p-1 bg-white border border-[#EBE7DF] rounded-2xl shrink-0 self-start md:self-auto">
+          {/* CAMBIO (responsive): las pills pueden bajar de línea (flex-wrap) y llevan menos padding en móvil para no desbordar */}
+          <div className="flex flex-wrap items-center gap-1.5 p-1 bg-white border border-[#EBE7DF] rounded-2xl shrink-0 self-start md:self-auto">
             <button
               type="button"
               onClick={() => setRoleFilter("all")}
-              className={`px-4 py-2 rounded-xl text-xs font-semibold transition-all cursor-pointer ${roleFilter === "all"
+              className={`px-3 sm:px-4 py-2 rounded-xl text-xs font-semibold transition-all cursor-pointer ${roleFilter === "all"
                 ? "bg-[#529471] text-white shadow-xs"
                 : "text-slate-600 hover:text-slate-800 hover:bg-[#FAF8F5]"
                 }`}
@@ -249,7 +254,7 @@ export const Users = () => {
             <button
               type="button"
               onClick={() => setRoleFilter("pedagogo")}
-              className={`px-4 py-2 rounded-xl text-xs font-semibold transition-all cursor-pointer ${roleFilter === "pedagogo"
+              className={`px-3 sm:px-4 py-2 rounded-xl text-xs font-semibold transition-all cursor-pointer ${roleFilter === "pedagogo"
                 ? "bg-[#2D6A4F] text-white shadow-xs"
                 : "text-slate-600 hover:text-slate-800 hover:bg-[#FAF8F5]"
                 }`}
@@ -259,7 +264,7 @@ export const Users = () => {
             <button
               type="button"
               onClick={() => setRoleFilter("admin")}
-              className={`px-4 py-2 rounded-xl text-xs font-semibold transition-all cursor-pointer ${roleFilter === "admin"
+              className={`px-3 sm:px-4 py-2 rounded-xl text-xs font-semibold transition-all cursor-pointer ${roleFilter === "admin"
                 ? "bg-[#69488E] text-white shadow-xs"
                 : "text-slate-600 hover:text-slate-800 hover:bg-[#FAF8F5]"
                 }`}
@@ -289,7 +294,8 @@ export const Users = () => {
         {/* GRID DE TARJETAS DE USUARIOS */}
         {!isLoading && filteredUsers.length > 0 && (
           // CAMBIO: grid con scroll interno (flex-1 min-h-0 overflow-y-auto) para que la página no desplace
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 content-start flex-1 min-h-0 overflow-y-auto p-1">
+          // CAMBIO (responsive): ese scroll interno pasa a ser solo desde lg; antes era siempre
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 content-start lg:flex-1 lg:min-h-0 lg:overflow-y-auto p-1">
             {filteredUsers.map((user) => (
               <UserCard
                 key={user._id}
