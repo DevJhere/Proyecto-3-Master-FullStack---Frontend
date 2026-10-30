@@ -98,7 +98,8 @@ src/
 - **Calendario**: vista semanal lunes–viernes, franjas de 09:00 a 17:00; clic en una celda libre para agendar una sesión. Las sesiones canceladas no ocupan hueco.
 - **Perfil**: nombre, especialidad y foto (jpg, png o webp, máx. 5 MB).
 - **Usuarios (admin)**: crear miembros, editar datos y rol, y eliminar (el backend impide borrar a quien tenga alumnos o sesiones asignados y el modal muestra el motivo).
-- **Diseño sin scroll de página**: las pantallas principales (Inicio, Alumnos, Sesiones, Perfil, Usuarios) ocupan el alto disponible; solo hacen scroll interno los listados largos.
+- **Diseño responsive** (móvil < 768 px, tablet 768-1023 px y PC ≥ 1024 px): en móvil el menú lateral es un panel que se abre desde una barra superior; en tablet la barra lateral muestra solo iconos; en PC es la barra completa. El calendario muestra un solo día (con selector) en móvil y la semana completa desde tablet. Los comentarios `CAMBIO (responsive)` del código explican cada ajuste.
+- **Diseño sin scroll de página**: en PC las pantallas principales (Inicio, Alumnos, Sesiones, Perfil, Usuarios) ocupan el alto disponible y solo hacen scroll interno los listados largos; en móvil y tablet la página fluye con altura natural.
 
 ## Convenciones del código
 
