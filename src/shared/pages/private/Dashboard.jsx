@@ -62,12 +62,21 @@ export const Dashboard = () => {
   //El saludo solo cuenta las que todavía están pendientes (no las canceladas ni las ya completadas)
   const pendingTodayCount = myTodaySessions.filter((session) => session.status === "Pendiente").length;
 
+  /* CAMBIO (Dashboard del admin): igual que con los alumnos, GET /sessions devuelve al admin las sesiones de TODOS los pedagogos,
+     así que "Sesiones este mes" y "Sesiones Completadas" contaban sesiones ajenas. Los KPI usan solo las sesiones asignadas al usuario logueado. */
+  const mySessions = sessions.filter((session) => {
+    const pedagogoId = typeof session.pedagogoAsignado === "object"
+      ? session.pedagogoAsignado?._id
+      : session.pedagogoAsignado;
+    return pedagogoId === (user?._id || user?.id);
+  });
+
   //Sesiones de este mes
   const currentMonth = new Date().getMonth() + 1; // el + 1 es para que el mes de enero no empiece desde el 0
   const currentYear = new Date().getFullYear(); // el getFullYear es para que el año no empiece desde el 2000
 
   //Filtramos las sesiones por mes y año. Las canceladas no cuentan como programadas.
-  const sessionsThisMounthCount = sessions.filter(session => {
+  const sessionsThisMounthCount = mySessions.filter(session => {
     const sessionsDate = new Date(session.date || session.fecha);
     return session.status !== "Cancelado" && sessionsDate.getMonth() + 1 === currentMonth && sessionsDate.getFullYear() === currentYear
   }).length;
@@ -96,11 +105,22 @@ export const Dashboard = () => {
     fetchStudentsData();
   }, []);
 
-  //Alumnos activos
-  const activeStudentsCount = students.length;
+  /* CAMBIO (Dashboard del admin): GET /students devuelve al administrador los alumnos de TODOS los pedagogos, por lo que
+     "Alumnos Activos" y "Acceso Rápido" mostraban alumnos ajenos (p. ej. los creados por Samantha). Igual que ya se hace con
+     las sesiones (myTodaySessions), nos quedamos solo con los alumnos asignados al usuario logueado. Para un pedagogo no cambia
+     nada, porque el backend ya solo le devuelve los suyos. El listado completo del admin sigue en la página Alumnos. */
+  const myStudents = students.filter((student) => {
+    const pedagogoId = typeof student.pedagogoAsignado === "object"
+      ? student.pedagogoAsignado?._id
+      : student.pedagogoAsignado;
+    return pedagogoId === (user?._id || user?.id);
+  });
+
+  //Alumnos activos (los asignados al usuario)
+  const activeStudentsCount = myStudents.length;
 
   //Sesiones completadas
-  const completedSessionsCount = sessions.filter(session => session.status === "Completado" || session.estado === "Completado").length;
+  const completedSessionsCount = mySessions.filter(session => session.status === "Completado" || session.estado === "Completado").length;
 
   return (
     /* CAMBIO (scroll en Inicio): antes el Dashboard tenía su propio overflow-y-auto, un py-6 extra y
@@ -212,14 +232,14 @@ export const Dashboard = () => {
           {/* Tarjetas de acceso rápido */}
           {isLoadingStudents ? (
             <div className="text-center py-4 text-slate-400 text-sm">Cargando alumnos...</div>
-          ) : students.length === 0 ? (
+          ) : myStudents.length === 0 ? (
             <div className="text-center py-4 bg-white rounded-3xl border border-dashed border-[#EBE7DF]">
               <p className="text-slate-400 text-sm">No tienes alumnos asignados todavía.</p>
             </div>
           ) : (
             // Grid de 3 columons que muestras hasta 6 pacientes/alumnos principales
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-              {students.slice(0, 6).map((student) => (
+              {myStudents.slice(0, 6).map((student) => (
                 <StudentQuickCard key={student._id} student={student} />
               ))}
             </div>
