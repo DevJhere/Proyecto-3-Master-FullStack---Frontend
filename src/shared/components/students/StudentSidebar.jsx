@@ -22,7 +22,8 @@ export const StudentSidebar = ( {student}) => {
         
         {/* Card Perfil */}
         <div className="bg-white rounded-3xl border border-[#EBE7DF] overflow-hidden shadow-sm">
-            <div className="h-64 w-full overflow-hidden bg-slate-100" >
+            {/* CAMBIO (responsive): la foto de la ficha ocupaba todo el ancho a 256px de alto y en móvil dominaba la pantalla; ahora h-48 en móvil y h-64 desde md */}
+            <div className="h-48 md:h-64 w-full overflow-hidden bg-slate-100" >
                 <img 
                     src={getAvatarUrl(student.avatar)} 
                     alt={student.name}

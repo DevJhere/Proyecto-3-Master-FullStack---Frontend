@@ -229,7 +229,10 @@ export const NewStudentModal = ({ isOpen, onClose, onStudentCreated }) => {
                     <div className="space-y-3">
                         {/* Subida de foto perfil con Preview */}
                         {/* CAMBIO (scroll en Nuevo Alumno): la foto y el nombre completo comparten fila (antes ocupaban dos bloques apilados) */}
-                        <div className="flex items-end gap-4">
+                        {/* CAMBIO (responsive): en móvil el nombre pasaba a ~110px y se cortaba el placeholder. Ahora la foto y su texto forman un bloque
+                            (flex items-center) y el nombre baja a una fila propia a ancho completo; desde sm vuelven a compartir fila como antes. */}
+                        <div className="flex flex-col sm:flex-row sm:items-end gap-3 sm:gap-4">
+                          <div className="flex items-center gap-4 shrink-0">
                             <div className="relative w-14 h-14 rounded-full bg-[#FAF8F5] border-2 border-dashed border-[#EBE7DF] flex items-center justify-center overflow-hidden shrink-0">
                                 {avatarPreview ? (
                                     <img src={avatarPreview} alt="Avatar Preview" className="w-full h-full object-cover" />
@@ -253,6 +256,7 @@ export const NewStudentModal = ({ isOpen, onClose, onStudentCreated }) => {
                                 </label>
                                 <p className="text-[11px] text-slate-400 mt-1">PNG o JPG (máx. 5MB)</p>
                             </div>
+                          </div>
 
                             {/* Nombre Completo */}
                             <div className="flex-1 min-w-0">
