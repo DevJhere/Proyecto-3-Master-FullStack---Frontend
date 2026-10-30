@@ -119,10 +119,14 @@ export const Users = () => {
   };
 
   return (
-    <div className="flex-1 overflow-y-auto">
-      <div className="max-w-7xl mx-auto px-8 py-6">
+    /* CAMBIO (scroll en Usuarios): antes la página tenía su propio overflow-y-auto, py-6 y márgenes mb-6/mb-8
+       entre bloques que, sumados al p-8 del <main>, generaban scroll. Ahora ocupa el alto disponible (h-full):
+       cabecera, métricas y buscador quedan fijos y solo el listado de tarjetas puede hacer scroll interno
+       si hay muchos miembros. */
+    <div className="h-full">
+      <div className="max-w-7xl mx-auto px-8 h-full flex flex-col">
         {/* CABECERA PRINCIPAL */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4 shrink-0">
           <div>
             <h1 className="text-3xl tracking-wider font-semibold text-ink leading-snug">
               Gestión de Equipo
@@ -144,7 +148,7 @@ export const Users = () => {
 
         {/* TOAST DE ÉXITO */}
         {successToast && (
-          <div role="status" className="mb-6 p-4 bg-[#EEF7F2] border border-[#A8D4BB] text-[#2D6A4F] rounded-2xl text-xs font-semibold flex items-center justify-between">
+          <div role="status" className="mb-4 shrink-0 p-4 bg-[#EEF7F2] border border-[#A8D4BB] text-[#2D6A4F] rounded-2xl text-xs font-semibold flex items-center justify-between">
             <span>{successToast}</span>
             <button
               onClick={() => setSuccessToast("")}
@@ -158,7 +162,7 @@ export const Users = () => {
 
         {/* AVISO: acción completada solo en parte */}
         {warning && (
-          <div role="alert" className="mb-6 p-4 bg-[#FFF8E6] border border-[#F2D98D] text-[#8A6100] rounded-2xl text-xs font-semibold flex items-center justify-between">
+          <div role="alert" className="mb-4 shrink-0 p-4 bg-[#FFF8E6] border border-[#F2D98D] text-[#8A6100] rounded-2xl text-xs font-semibold flex items-center justify-between">
             <span>{warning}</span>
             <button type="button" onClick={() => setWarning("")} aria-label="Cerrar advertencia" className="cursor-pointer">✕</button>
           </div>
@@ -166,13 +170,13 @@ export const Users = () => {
 
         {/* MENSAJE DE ERROR GLOBAL */}
         {error && (
-          <div role="alert" className="mb-6 p-4 bg-red-50 border border-red-200 text-red-600 rounded-2xl text-xs font-semibold">
+          <div role="alert" className="mb-4 shrink-0 p-4 bg-red-50 border border-red-200 text-red-600 rounded-2xl text-xs font-semibold">
             {error}
           </div>
         )}
 
         {/* TARJETAS DE MÉTRICAS */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-5 mb-8">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4 shrink-0">
           {/* Card 1: Total */}
           <div className="bg-white rounded-3xl border border-[#EBE7DF] p-5 shadow-xs flex items-center justify-between">
             <div>
@@ -217,7 +221,7 @@ export const Users = () => {
         </div>
 
         {/* BARRA DE BÚSQUEDA Y FILTROS */}
-        <div className="flex flex-col md:flex-row gap-4 items-stretch md:items-center justify-between mb-8">
+        <div className="flex flex-col md:flex-row gap-4 items-stretch md:items-center justify-between mb-4 shrink-0">
           {/* Input de Búsqueda */}
           <div className="relative flex-1">
             <FiSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-ink-faint" size={18} />
@@ -267,13 +271,13 @@ export const Users = () => {
 
         {/* ESTADOS DE CARGA Y VACÍO */}
         {isLoading && (
-          <div className="text-center py-16 text-slate-400 font-medium text-sm tracking-wider">
+          <div className="text-center py-8 text-slate-400 font-medium text-sm tracking-wider">
             Cargando miembros del equipo...
           </div>
         )}
 
         {!isLoading && filteredUsers.length === 0 && (
-          <div className="text-center py-16 bg-white rounded-3xl border border-[#EBE7DF] p-8">
+          <div className="text-center py-8 bg-white rounded-3xl border border-[#EBE7DF] p-6">
             <LuSearchX className="w-14 h-14 mx-auto mb-3 text-slate-300" />
             <h3 className="text-base font-bold text-slate-700">No se encontraron miembros</h3>
             <p className="text-xs text-slate-400 mt-1 max-w-sm mx-auto">
@@ -284,7 +288,8 @@ export const Users = () => {
 
         {/* GRID DE TARJETAS DE USUARIOS */}
         {!isLoading && filteredUsers.length > 0 && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          // CAMBIO: grid con scroll interno (flex-1 min-h-0 overflow-y-auto) para que la página no desplace
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 content-start flex-1 min-h-0 overflow-y-auto p-1">
             {filteredUsers.map((user) => (
               <UserCard
                 key={user._id}

@@ -103,19 +103,23 @@ export const Dashboard = () => {
   const completedSessionsCount = sessions.filter(session => session.status === "Completado" || session.estado === "Completado").length;
 
   return (
-    <div className="flex-1 overflow-y-auto">
+    /* CAMBIO (scroll en Inicio): antes el Dashboard tenía su propio overflow-y-auto, un py-6 extra y
+       márgenes mb-10 que, sumados al p-8 del <main> de MainLayout, generaban scroll. Ahora ocupa
+       exactamente el alto disponible (h-full), reduce los espaciados y solo la lista de "Sesiones de hoy"
+       hace scroll interno si hay muchas, así la página en sí no desplaza. */
+    <div className="h-full overflow-hidden">
       {/* Contenedor */}
-      <div className="max-w-7xl mx-auto px-8 py-6">
+      <div className="max-w-7xl mx-auto px-8 h-full flex flex-col">
 
         {/* Contendedor cabecera */}
-        <div className="mb-10">
+        <div className="mb-4 shrink-0">
           <p className="text-sm text-ink-faint font-medium mb-1">{dateTodayCap}</p>
 
           {/* Titulo Saludo a Usuario */}
           <h1 className="text-3xl tracking-wider font-medium text-ink leading-snug">
             Hola, {userNameCap}
           </h1>
-          <p className="text-ink-muted mt-1 text-sm mb-8">Tienes{" "}
+          <p className="text-ink-muted mt-1 text-sm mb-0">Tienes{" "}
             <span className="font-semibold text-sage">
               {pendingTodayCount} {pendingTodayCount === 1 ? "sesión" : "sesiones"}{" "}
             </span>
@@ -125,14 +129,14 @@ export const Dashboard = () => {
 
         {/* Errores de carga: sin esto un fallo de la API parecería "no hay datos" */}
         {(error || errorStudents) && (
-          <div role="alert" className="mb-6 bg-red-50 text-red-600 p-4 rounded-2xl border border-red-100 text-sm space-y-1">
+          <div role="alert" className="mb-4 shrink-0 bg-red-50 text-red-600 p-4 rounded-2xl border border-red-100 text-sm space-y-1">
             {error && <p>{error}</p>}
             {errorStudents && <p>{errorStudents}</p>}
           </div>
         )}
 
         {/* Contenedor TARJETAS KPI */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4 shrink-0">
           {/* Alumnos Activos */}
           <KpiCard
             title="Alumnos Activos"
@@ -162,9 +166,9 @@ export const Dashboard = () => {
         </div>
 
         {/* Contenedor Sesiones de Hoy */}
-        <div className="mb-10">
+        <div className="mb-4 flex-1 min-h-0 flex flex-col">
 
-          <div className="flex items-baseline justify-between mb-4">
+          <div className="flex items-baseline justify-between mb-3 shrink-0">
             <h2 className="text-lg font-semibold tracking-wider text-ink">
               Sesiones de hoy
             </h2>
@@ -176,14 +180,14 @@ export const Dashboard = () => {
 
           {/* Card de Sesión */}
           {isLoading ? (
-            <div className="text-center py-10 text-slate-400 text-sm">Cargando sesiones...</div>
+            <div className="text-center py-6 text-slate-400 text-sm">Cargando sesiones...</div>
           ) : myTodaySessions.length === 0 ? (
-            <div className="text-center py-10 bg-white rounded-3xl border border-dashed border-[#EBE7DF]">
+            <div className="text-center py-6 bg-white rounded-3xl border border-dashed border-[#EBE7DF]">
               <p className="text-ink-muted hover:bg-slate-50 hover:text-slate-700">No hay sesiones programadas para hoy.</p>
             </div>
           ) : (
             // Si hay sesiones, recorremos la lista
-            <div className="space-y-4">
+            <div className="space-y-3 flex-1 min-h-0 overflow-y-auto pr-1">
 
               {myTodaySessions.map((session) => (
                 <SessionCard
@@ -198,8 +202,8 @@ export const Dashboard = () => {
         </div>
 
         {/* Contenedor: Acceso rapido de Alumnos */}
-        <div className="mb-10">
-          <div className="flex items-baseline justify-between mb-4">
+        <div className="shrink-0">
+          <div className="flex items-baseline justify-between mb-3">
             <h2 className="text-lg font-semibold tracking-wider text-slate-800">
               Acceso Rápido
             </h2>
@@ -207,9 +211,9 @@ export const Dashboard = () => {
 
           {/* Tarjetas de acceso rápido */}
           {isLoadingStudents ? (
-            <div className="text-center py-8 text-slate-400 text-sm">Cargando alumnos...</div>
+            <div className="text-center py-4 text-slate-400 text-sm">Cargando alumnos...</div>
           ) : students.length === 0 ? (
-            <div className="text-center py-8 bg-white rounded-3xl border border-dashed border-[#EBE7DF]">
+            <div className="text-center py-4 bg-white rounded-3xl border border-dashed border-[#EBE7DF]">
               <p className="text-slate-400 text-sm">No tienes alumnos asignados todavía.</p>
             </div>
           ) : (

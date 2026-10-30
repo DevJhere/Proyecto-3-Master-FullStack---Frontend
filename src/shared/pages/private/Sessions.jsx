@@ -120,10 +120,14 @@ export const Sessions = () => {
 
 
   return (
-    <div className="flex-1 overflow-y-auto">
-      <div className="max-w-7xl mx-auto px-6 py-6 space-y-6">
+    /* CAMBIO (scroll en Sesiones): antes la página tenía su propio overflow-y-auto y cada fila de hora medía
+       min-h-[92px] (9 filas = ~830px), lo que obligaba a hacer scroll. Ahora la página ocupa el alto
+       disponible (h-full) y la rejilla reparte ese alto entre las filas con flex-1. Se mantiene un alto
+       mínimo por fila (min-h-[56px]) para que, en pantallas muy bajas, el scroll lo gestione el <main>. */
+    <div className="h-full">
+      <div className="max-w-7xl mx-auto px-6 h-full flex flex-col gap-4">
         {/* CABECERA: Título, Rango de fechas y Navegación */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 shrink-0">
           <div>
             <h1 className="text-3xl font-bold tracking-tight text-slate-900">
               Calendario
@@ -161,18 +165,18 @@ export const Sessions = () => {
         </div>
         {/* Estados de carga y de error: sin ellos un fallo de la API parecería un calendario sin sesiones */}
         {isLoading && (
-          <p className="text-center text-sm text-slate-400 font-medium">Cargando calendario...</p>
+          <p className="text-center text-sm text-slate-400 font-medium shrink-0">Cargando calendario...</p>
         )}
         {error && (
-          <div role="alert" className="bg-red-50 text-red-600 p-4 rounded-2xl border border-red-100 text-sm">
+          <div role="alert" className="bg-red-50 text-red-600 p-4 rounded-2xl border border-red-100 text-sm shrink-0">
             {error}
           </div>
         )}
 
         {/* CONTENEDOR DE LA REJILLA DEL CALENDARIO */}
-        <div className="bg-white rounded-3xl border border-[#EBE7DF] overflow-hidden shadow-sm">
+        <div className="bg-white rounded-3xl border border-[#EBE7DF] overflow-hidden shadow-sm flex flex-col flex-1 min-h-0">
           {/* Cabecera de días (LUN 24, MAR 25, ...) */}
-          <div className="grid grid-cols-[70px_repeat(5,1fr)] sm:grid-cols-[90px_repeat(5,1fr)] border-b border-[#EBE7DF] bg-[#FAF8F5]/40">
+          <div className="grid grid-cols-[70px_repeat(5,1fr)] sm:grid-cols-[90px_repeat(5,1fr)] border-b border-[#EBE7DF] bg-[#FAF8F5]/40 shrink-0">
             {/* Esquina superior izquierda vacía */}
             <div className="border-r border-[#EBE7DF]" />
             {/* Columnas de los 5 días */}
@@ -186,7 +190,7 @@ export const Sessions = () => {
               return (
                 <div
                   key={i}
-                  className="py-3 text-center border-r border-[#EBE7DF] last:border-r-0"
+                  className="py-2 text-center border-r border-[#EBE7DF] last:border-r-0"
                 >
                   <p className="text-[11px] font-semibold text-slate-400 tracking-wider">
                     {dayShort}
@@ -202,16 +206,16 @@ export const Sessions = () => {
             })}
           </div>
           {/* Filas de horas y celdas */}
-          <div className="divide-y divide-[#EBE7DF]/80">
+          <div className="divide-y divide-[#EBE7DF]/80 flex flex-col flex-1 min-h-0">
             {HOURS.map((hour) => {
               const hourLabel = `${String(hour).padStart(2, "0")}:00`;
               return (
                 <div
                   key={hour}
-                  className="grid grid-cols-[70px_repeat(5,1fr)] sm:grid-cols-[90px_repeat(5,1fr)] min-h-[92px]"
+                  className="grid grid-cols-[70px_repeat(5,1fr)] sm:grid-cols-[90px_repeat(5,1fr)] flex-1 min-h-[56px]"
                 >
                   {/* Columna Izquierda: Hora */}
-                  <div className="text-center pt-3 text-xs font-semibold text-slate-400 border-r border-[#EBE7DF]">
+                  <div className="text-center pt-2 text-xs font-semibold text-slate-400 border-r border-[#EBE7DF]">
                     {hourLabel}
                   </div>
                   {/* 5 Celdas de días para esta hora */}
@@ -230,7 +234,7 @@ export const Sessions = () => {
                             handleSlotClick(dayDate, hour);
                           }
                         }}
-                        className={`p-1.5 sm:p-2 border-r border-[#EBE7DF]/80 last:border-r-0 transition-colors group relative ${cellSessions.length === 0
+                        className={`p-1 sm:p-1.5 overflow-hidden border-r border-[#EBE7DF]/80 last:border-r-0 transition-colors group relative ${cellSessions.length === 0
                             ? "hover:bg-[#FAF8F5]/70 cursor-pointer"
                             : ""
                           }`}
@@ -253,12 +257,12 @@ export const Sessions = () => {
                               key={session._id}
                               to={`/students/${studentId}`}
                               onClick={(e) => e.stopPropagation()}
-                              className={`block h-full p-2.5 rounded-2xl border-l-4 shadow-2xs hover:shadow-md transition-all ${theme.bg} ${theme.text} ${theme.border}`}
+                              className={`block h-full overflow-hidden p-2 rounded-2xl border-l-4 shadow-2xs hover:shadow-md transition-all ${theme.bg} ${theme.text} ${theme.border}`}
                             >
                               <p className="font-bold text-xs truncate">
                                 {studentName}
                               </p>
-                              <p className="text-[11px] opacity-80 line-clamp-2 mt-0.5 leading-snug">
+                              <p className="text-[11px] opacity-80 line-clamp-1 mt-0.5 leading-snug">
                                 {session.notes || "Sesión de apoyo"}
                               </p>
                             </Link>

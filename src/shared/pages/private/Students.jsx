@@ -1,5 +1,6 @@
 import { StudentCard } from "../../components/students/StudentCard";
 import { useState } from "react";
+import { FiChevronLeft, FiChevronRight } from "react-icons/fi";
 import { useEffect } from "react";
 import apiClient from "../../config/axios";
 import { IoSearchOutline } from "react-icons/io5";
@@ -65,6 +66,10 @@ export const Students = () => {
   // Estado para filtrar y gestionar busqueda
   const [ searchTerm, setSearchTerm ] = useState("");
 
+  // CAMBIO (paginación en Alumnos): se muestran como máximo 10 alumnos por página y el resto se consulta con los botones de paginación
+  const STUDENTS_PER_PAGE = 10;
+  const [ currentPage, setCurrentPage ] = useState(1);
+
   /* Cálculamos sesiones asociadas al alumno */
   const getStudentSessionsCount = (studentId) => {
     return sessions.filter( (session) => {
@@ -88,14 +93,24 @@ export const Students = () => {
   }); 
 
 
+  // CAMBIO (paginación en Alumnos): calculamos el nº de páginas y recortamos la lista filtrada.
+  // Limitamos la página actual por si la lista se acorta (p. ej. al buscar) y la página queda fuera de rango.
+  const totalPages = Math.max(1, Math.ceil(filteredStudents.length / STUDENTS_PER_PAGE));
+  const safePage = Math.min(currentPage, totalPages);
+  const pageStart = (safePage - 1) * STUDENTS_PER_PAGE;
+  const paginatedStudents = filteredStudents.slice(pageStart, pageStart + STUDENTS_PER_PAGE);
+
   // Conexion modal Nuevo Alumno
   const [ isModalOpen, setIsModalOPen ] = useState(false);
 
   return (
-    <div className="flex-1 overflow-y-auto">
-      <div className="max-w-7xl mx-auto px-8 py-6">
+    /* CAMBIO (scroll en Alumnos): antes la página tenía su propio overflow-y-auto, py-6 y mostraba todas las
+       tarjetas a la vez. Ahora ocupa el alto disponible (h-full): cabecera, buscador y paginación quedan fijos
+       y solo el listado (máx. 10 alumnos por página) puede hacer scroll interno si la pantalla es pequeña. */
+    <div className="h-full">
+      <div className="max-w-7xl mx-auto px-8 h-full flex flex-col">
         {/* Contenedor cabecera */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4 shrink-0">
           <div>
             <h1 className="text-3xl tracking-wider font-medium text-ink leading-snug">Alumnos</h1>
             <p className="text-sm text-slate-500 mt-1 tracking-wider leading-snug">Gestión de alumnos y expedientes</p>
@@ -115,14 +130,17 @@ export const Students = () => {
         </div>
 
         {/* Barra de búsqueda */}
-        <div className="relative mb-8">
+        <div className="relative mb-4 shrink-0">
           <IoSearchOutline className="absolute left-4 top-1/2 -translate-y-1/2 text-ink-faint" size={18} />
           <input
           type="text"
           aria-label="Buscar alumnos"
           placeholder="Búsqueda por nombre, curso, diagnóstico, tutor…"
           value={searchTerm}
-          onChange={ (e) => setSearchTerm(e.target.value)}
+          onChange={ (e) => {
+            setSearchTerm(e.target.value);
+            setCurrentPage(1); // CAMBIO: al buscar volvemos a la primera página
+          }}
           className="w-full pl-11 pr-4 py-3 bg-white border border-[#e8e4db] rounded-xl text-sm text-ink placeholder:text-ink-faint focus:outline-none focus:border-[#5d9e7e] transition-colors"
           />
         </div>
@@ -150,8 +168,9 @@ export const Students = () => {
 
         {/* Grid cards Alumnos */}
         {!isLoadingStudents && !isLoadingSessions && filteredStudents.length > 0 && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-              {filteredStudents.map( (student) => (
+          // CAMBIO: grid con scroll interno (flex-1 min-h-0 overflow-y-auto); en xl pasa a 5 columnas para que las 10 tarjetas de la página ocupen 2 filas
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4 content-start flex-1 min-h-0 overflow-y-auto p-1">
+              {paginatedStudents.map( (student) => (
                 <StudentCard
                 key={student._id}
                 student={{
@@ -161,6 +180,54 @@ export const Students = () => {
                 />
               ))}
           </div>
+        )}
+
+        {/* CAMBIO: controles de paginación (solo si hay más alumnos de los que caben en una página) */}
+        {!isLoadingStudents && !isLoadingSessions && filteredStudents.length > STUDENTS_PER_PAGE && (
+          <nav aria-label="Paginación de alumnos" className="flex items-center justify-between gap-4 pt-4 shrink-0">
+            <p className="text-xs text-slate-500">
+              Mostrando {pageStart + 1}–{Math.min(pageStart + STUDENTS_PER_PAGE, filteredStudents.length)} de {filteredStudents.length} alumnos
+            </p>
+
+            <div className="flex items-center gap-1">
+              <button
+                type="button"
+                aria-label="Página anterior"
+                disabled={safePage === 1}
+                onClick={() => setCurrentPage(safePage - 1)}
+                className="p-2 rounded-xl bg-white border border-[#EBE7DF] text-slate-600 hover:border-slate-300 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition-all"
+              >
+                <FiChevronLeft size={16} />
+              </button>
+
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                <button
+                  key={page}
+                  type="button"
+                  aria-label={`Página ${page}`}
+                  aria-current={page === safePage ? "page" : undefined}
+                  onClick={() => setCurrentPage(page)}
+                  className={`min-w-9 px-3 py-2 rounded-xl border text-xs font-semibold cursor-pointer transition-all ${
+                    page === safePage
+                      ? "bg-[#529471] border-[#529471] text-white"
+                      : "bg-white border-[#EBE7DF] text-slate-600 hover:border-slate-300"
+                  }`}
+                >
+                  {page}
+                </button>
+              ))}
+
+              <button
+                type="button"
+                aria-label="Página siguiente"
+                disabled={safePage === totalPages}
+                onClick={() => setCurrentPage(safePage + 1)}
+                className="p-2 rounded-xl bg-white border border-[#EBE7DF] text-slate-600 hover:border-slate-300 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition-all"
+              >
+                <FiChevronRight size={16} />
+              </button>
+            </div>
+          </nav>
         )}
 
         {/* Modal para Crear Alumno */}

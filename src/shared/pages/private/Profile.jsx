@@ -144,8 +144,11 @@ export const Profile = () => {
   : "PT";
 
   return (
-    <div className="flex-1 overflow-y-auto">
-      <div className="max-w-4xl mx-auto px-6 py-8 space-y-6">
+    /* CAMBIO (scroll en Perfil): antes la página tenía su propio overflow-y-auto, py-8 y espaciados/paddings
+       generosos (space-y-6, p-8, pt-6) que, sumados al p-8 del <main>, generaban scroll. Se elimina el
+       scroll propio y se compactan los espaciados para que el formulario quepa en pantalla sin desplazar. */
+    <div className="h-full">
+      <div className="max-w-4xl mx-auto px-6 space-y-4">
         {/* CABECERA */}
         <div>
           <p className="text-[11px] font-bold tracking-wider text-[#529471] uppercase mb-1">
@@ -171,16 +174,16 @@ export const Profile = () => {
             <span>{errorMsg}</span>
           </div>
         )}
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form onSubmit={handleSubmit} className="space-y-4">
           {/* TARJETA 1: FOTO DE PERFIL */}
-          <div className="bg-white rounded-3xl border border-[#EBE7DF] p-6 sm:p-8 shadow-sm">
-            <div className="pb-4 border-b border-[#EBE7DF]">
+          <div className="bg-white rounded-3xl border border-[#EBE7DF] p-5 shadow-sm">
+            <div className="pb-3 border-b border-[#EBE7DF]">
               <h2 className="text-base font-bold text-slate-800">Foto de perfil</h2>
               <p className="text-xs text-ink-muted mt-0.5">
                 Una imagen clara ayuda a personalizar tu espacio de trabajo.
               </p>
             </div>
-            <div className="pt-6 flex items-center gap-6">
+            <div className="pt-4 flex items-center gap-6">
               {/* Círculo Avatar */}
               <div className="w-20 h-20 rounded-full bg-[#EDE7F6] text-[#7E57C2] flex items-center justify-center font-bold text-xl overflow-hidden shrink-0 border border-[#EBE7DF]">
                 {avatarPreview ? (
@@ -217,8 +220,8 @@ export const Profile = () => {
             </div>
           </div>
           {/* TARJETA 2: INFORMACIÓN PROFESIONAL */}
-          <div className="bg-white rounded-3xl border border-[#EBE7DF] p-6 sm:p-8 shadow-sm">
-            <div className="pb-4 border-b border-[#EBE7DF]">
+          <div className="bg-white rounded-3xl border border-[#EBE7DF] p-5 shadow-sm">
+            <div className="pb-3 border-b border-[#EBE7DF]">
               <h2 className="text-base font-bold text-slate-800">
                 Información profesional
               </h2>
@@ -226,7 +229,7 @@ export const Profile = () => {
                 Estos datos identifican tu cuenta dentro de la plataforma.
               </p>
             </div>
-            <div className="pt-6 space-y-5">
+            <div className="pt-4 space-y-4">
               {/* Nombre Completo */}
               <div>
                 <label htmlFor="profile-name" className="block text-[11px] font-bold text-ink-muted uppercase tracking-wider mb-2">
@@ -243,7 +246,7 @@ export const Profile = () => {
                 />
               </div>
               {/* Fila: Especialidad y Correo electrónico */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {/* Especialidad */}
                 <div>
                   <label htmlFor="profile-specialization" className="block text-[11px] font-bold text-ink-muted uppercase tracking-wider mb-2">
@@ -283,7 +286,7 @@ export const Profile = () => {
             </div>
           </div>
           {/* BOTÓN GUARDAR CAMBIOS */}
-          <div className="flex justify-end pt-2">
+          <div className="flex justify-end">
             <button
               type="submit"
               disabled={isSubmitting}

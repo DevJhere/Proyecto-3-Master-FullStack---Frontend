@@ -10,7 +10,8 @@ export const StudentCard = ({student}) => {
     className="bg-white rounded-3xl border border-[#EBE7DF] hover:border-[#529471] shadow-sm hover:shadow-md transition-all overflow-hidden flex flex-col group cursor-pointer"
     >
         {/* Mostramos el Avatar - Imagen - Mitad Superior */}
-        <div className="h-44 w-full overflow-hidden bg-slate-100">
+        {/* CAMBIO (scroll en Alumnos): altura de la imagen reducida de h-44 a h-32 y padding de p-5 a p-4 para que 2 filas de tarjetas quepan en pantalla */}
+        <div className="h-32 w-full overflow-hidden bg-slate-100">
             <img 
             src={getAvatarUrl(student.avatar)} 
             alt={student.name} 
@@ -19,7 +20,7 @@ export const StudentCard = ({student}) => {
         </div>
 
         {/* Mostramos la información del alumno - Mitad inferior  */}
-        <div className="p-5 flex-1 flex flex-col justify-between">
+        <div className="p-4 flex-1 flex flex-col justify-between">
 
             {/* Datos alumno - Fila Nombre + Diagnostico */}
             <div className="flex items-center justify-between gap-2">
@@ -35,7 +36,7 @@ export const StudentCard = ({student}) => {
             </div>
 
             {/* Datos alumno - Fila Curso + Edad */}
-            <p className="text-xs text-slate-400 mt-1 mb-4">
+            <p className="text-xs text-slate-400 mt-1 mb-3">
                 {`${COURSES[student.course] || student.course || "Curso no asignado"} · ${student.age || "Edad no registrada"} años`}
             </p>
             
