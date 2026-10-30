@@ -8,6 +8,7 @@ import { FaPlus } from "react-icons/fa";
 import { SessionTimeline } from "../../components/students/SessionTimeline";
 import { NewSessionForm } from "../../components/students/NewSessionForm";
 import { ReportList } from "../../components/students/ReportList";
+import { DeleteStudentModal } from "../../components/students/DeleteStudentModal";
 import { normalizeSessions, getApiErrorMessage } from "../../utils/APIHelpers";
 
 
@@ -27,6 +28,9 @@ export const StudentDetail = () => {
 
   //Pestaña activa Intervención | Informes
   const [activeTab, setActiveTab] = useState('intervention');
+
+  // CAMBIO (modal eliminar alumno): controla si se muestra el modal de confirmación (antes se usaba window.confirm)
+  const [ isDeleteModalOpen, setIsDeleteModalOpen ] = useState(false);
 
   // Esta para desplegar el formulario Nueva sesion
   const [ showNewSession, setShowNewSession] = useState(false);
@@ -64,19 +68,10 @@ export const StudentDetail = () => {
     fetchStudentData();
   }, [id, fetchStudentData]);
 
-  //Manejador para Eliminar Alumno
-  const handleDeleteStudent = async() => {
-    //Muestra ventana de confirmacion con el nombre del alumno y advierte que se perdera toda la informacion
-    const confirmDelete = window.confirm(`¿Estás seguro que deseas eliminar a ${student?.name}? Esto eliminará toda la información registrada en el sistema.`);
-
-    if(!confirmDelete) return
-
-    try {
-        await apiClient.delete(`/students/${id}`);
-        navigate("/students");
-    } catch (err) {
-        alert(getApiErrorMessage(err, "Error al eliminar al alumno."));
-    }
+  // CAMBIO (modal eliminar alumno): la petición DELETE y los errores los gestiona DeleteStudentModal (antes window.confirm + alert).
+  // Aquí solo reaccionamos al éxito volviendo a la lista de alumnos.
+  const handleStudentDeleted = () => {
+    navigate("/students");
   };
 
   return (
@@ -144,7 +139,7 @@ export const StudentDetail = () => {
                         {/* Boton eliminar Alumno */}
                         <button
                         type="button"
-                        onClick={handleDeleteStudent}
+                        onClick={() => setIsDeleteModalOpen(true)}
                         className="px-4 py-2 bg-[#e06262] hover:bg-[#ee4a4a] text-white rounded-xl text-xs sm:text-sm font-semibold flex items-center gap-1.5 shadow-sm transition-all cursor-pointer"
                         title="Eliminar expediente"
                         >
@@ -189,6 +184,14 @@ export const StudentDetail = () => {
         )}
 
 
+        {/* CAMBIO (modal eliminar alumno): modal de confirmación de borrado */}
+        <DeleteStudentModal
+          isOpen={isDeleteModalOpen}
+          onClose={() => setIsDeleteModalOpen(false)}
+          studentToDelete={student}
+          sessionsCount={sessions.length}
+          onStudentDeleted={handleStudentDeleted}
+        />
     </div>
   )
 }

@@ -1,7 +1,7 @@
 // Ficha del alumno: carga, pestañas de sesiones e informes, recarga de datos y eliminación del alumno
 
-import { describe, it, expect, vi } from "vitest";
-import { screen, waitFor, within } from "@testing-library/react";
+import { describe, it, expect } from "vitest";
+import { screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { http, HttpResponse, delay } from "msw";
 import { Link, Route, Routes } from "react-router-dom";
@@ -151,52 +151,56 @@ describe("StudentDetail: pestañas, sesiones e informes", () => {
   });
 });
 
-// Eliminación con confirmación del navegador; si la API falla se avisa y se permanece en la ficha
+// CAMBIO (modal eliminar alumno): la eliminación pasa por DeleteStudentModal (antes window.confirm + alert).
+// Si el usuario cancela no se borra nada; si la API falla el motivo se muestra dentro del modal y se permanece en la ficha
 describe("StudentDetail: eliminar alumno", () => {
-  it("no hace nada si el usuario cancela la confirmación", async () => {
+  it("abre el modal de confirmación y no borra nada si el usuario cancela", async () => {
     stubApi();
     let deleted = false;
     server.use(http.delete(api("/students/:id"), () => ((deleted = true), HttpResponse.json({}))));
-    const confirm = vi.spyOn(window, "confirm").mockReturnValue(false);
     const user = userEvent.setup();
     renderDetail();
     await screen.findByRole("heading", { name: "Lucía Navarro" });
 
     await user.click(screen.getByRole("button", { name: /Eliminar Alumno/ }));
 
-    expect(confirm).toHaveBeenCalledWith(expect.stringContaining("Lucía Navarro"));
+    const dialog = await screen.findByRole("dialog", { name: "¿Eliminar alumno?" });
+    expect(within(dialog).getByText("Lucía Navarro")).toBeInTheDocument();
+
+    await user.click(within(dialog).getByRole("button", { name: "Cancelar" }));
+
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
     expect(deleted).toBe(false);
     expect(screen.getByRole("heading", { name: "Lucía Navarro" })).toBeInTheDocument();
   });
 
-  it("elimina al alumno y vuelve a la lista si confirma", async () => {
+  it("elimina al alumno y vuelve a la lista si confirma en el modal", async () => {
     stubApi();
     let deletedId = null;
     server.use(http.delete(api("/students/:id"), ({ params }) => ((deletedId = params.id), HttpResponse.json({ message: "Estudiante eliminado correctamente" }))));
-    vi.spyOn(window, "confirm").mockReturnValue(true);
     const user = userEvent.setup();
     renderDetail();
     await screen.findByRole("heading", { name: "Lucía Navarro" });
 
     await user.click(screen.getByRole("button", { name: /Eliminar Alumno/ }));
+    await user.click(within(await screen.findByRole("dialog")).getByRole("button", { name: /Sí, eliminar/ }));
 
     expect(await screen.findByText("Lista de alumnos")).toBeInTheDocument();
     expect(deletedId).toBe("s-lucia");
   });
 
-  it("si la API falla avisa con el motivo y se queda en la ficha", async () => {
+  it("si la API falla muestra el motivo en el modal y se queda en la ficha", async () => {
     stubApi();
     server.use(http.delete(api("/students/:id"), () => HttpResponse.json({ message: "No autorizado", error: "No tienes permiso para eliminar este estudiante" }, { status: 403 })));
-    vi.spyOn(window, "confirm").mockReturnValue(true);
-    const alert = vi.spyOn(window, "alert").mockImplementation(() => {});
     const user = userEvent.setup();
     renderDetail();
     await screen.findByRole("heading", { name: "Lucía Navarro" });
 
     await user.click(screen.getByRole("button", { name: /Eliminar Alumno/ }));
+    const dialog = await screen.findByRole("dialog");
+    await user.click(within(dialog).getByRole("button", { name: /Sí, eliminar/ }));
 
-    await waitFor(() => expect(alert).toHaveBeenCalledWith("No tienes permiso para eliminar este estudiante"));
+    expect(await within(dialog).findByRole("alert")).toHaveTextContent("No tienes permiso para eliminar este estudiante");
     expect(screen.queryByText("Lista de alumnos")).not.toBeInTheDocument();
-    expect(within(document.body).getByRole("heading", { name: "Lucía Navarro" })).toBeInTheDocument();
   });
 });
